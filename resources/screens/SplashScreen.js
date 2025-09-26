@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
     appName: {
         fontSize: width * 0.12, // responsive font size
         fontWeight: 'bold',
-        color: 'black',
+        color: 'white',
     },
   loginButton: {
     backgroundColor: '#6200EE', // prominent color

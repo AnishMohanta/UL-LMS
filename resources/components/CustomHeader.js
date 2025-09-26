@@ -10,12 +10,14 @@ const CustomHeader = ({ title, onBackPress }) => {
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
       ) : (
-        <View style={styles.leftIcon} /> // Empty space if no back button
+        <View style={styles.leftIcon} /> 
+        /* empty space if no back button */
       )}
 
       <Text style={styles.title}>{title}</Text>
 
-      <View style={styles.rightIcon} /> {/* Keep spacing balanced */}
+      <View style={styles.rightIcon} /> 
+      {/* Keep spacing balanced */}
     </View>
   );
 };
@@ -23,7 +25,7 @@ const CustomHeader = ({ title, onBackPress }) => {
 const styles = StyleSheet.create({
   container: {
     height: 60,
-    backgroundColor: '#6200EE', // Customize your color
+    backgroundColor: '#6200EE',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -38,7 +40,7 @@ const styles = StyleSheet.create({
     width: 40,
   },
   rightIcon: {
-    width: 40, // Keep same width for alignment
+    width: 40,
   },
 });
 
