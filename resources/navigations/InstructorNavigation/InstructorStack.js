@@ -1,25 +1,19 @@
-import { View, Text } from 'react-native'
-import React from 'react'
-import { createStackNavigator } from '@react-navigation/stack';
-import StudentDashboard from "../../screens/App/StudentScreen/StudentDashboard"
-import InstructorDashboard from "../../screens/App/InstructorScreen/InstructorDashboard"
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import React from "react";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import InstructorTabNavigation from "./InstructorTabNavigator";
 
-//  const Stack = createStackNavigator();
- const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator();
+
 const InstructorStack = () => {
-   
   return (
- <Stack.Navigator >
- 
-  <Stack.Screen
-    name='InstructorDashboard'
-    component={InstructorDashboard}
-    options={{ headerShown: false, navigationBarColor: "blue" }}
-  />
- 
-</Stack.Navigator>
-  )
-}
+    <Stack.Navigator>
+      <Stack.Screen
+        name="InstructorTab"
+        component={InstructorTabNavigation}
+        options={{ headerShown: false }}
+      />
+    </Stack.Navigator>
+  );
+};
 
-export default InstructorStack
+export default InstructorStack;
