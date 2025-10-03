@@ -1,45 +1,63 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import CustomHeader from '../../../components/CustomHeader';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import { enrolled_courses_url } from '../../../api/ApiEndPoints';
+
 
 const StudentDashboard = ({ navigation }) => {
-  
+  const [userName, setUserName] = useState('');
+    const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Hardcoded course data
-  const courses = [
-    {
-      id: '1',
-      title: 'React Native Basics',
-      subject: 'Mobile Development',
-      description: 'Learn the basics of React Native and build your first app.',
-      progress: 40,
-      lessons: 12,
-    },
-    {
-      id: '2',
-      title: 'Advanced JavaScript',
-      subject: 'Programming',
-      description: 'Deep dive into modern JavaScript concepts and patterns.',
-      progress: 70,
-      lessons: 20,
-    },
-    {
-      id: '3',
-      title: 'UI/UX Design Fundamentals',
-      subject: 'Design',
-      description: 'Understand the principles of good UI and UX design.',
-      progress: 25,
-      lessons: 10,
-    },
-  ];
+
+      useEffect(() => {
+    const fetchUserData = async () => {
+      const name = await AsyncStorage.getItem('userName');
+      if (name) setUserName(name);
+     
+    };
+    fetchUserData();
+  }, []);
+
+    useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        setLoading(true);
+        const token = await AsyncStorage.getItem('userToken'); // your stored bearer token
+        if (!token) throw new Error('No token found');
+
+        const response = await axios.get(enrolled_courses_url, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.data && Array.isArray(response.data)) {
+          setCourses(response.data);
+        } else {
+          setCourses([]);
+        }
+      } catch (error) {
+        console.error('Error fetching courses:', error.message);
+        setCourses([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
 
   const renderCourseCard = ({ item }) => (
     <TouchableOpacity
@@ -53,30 +71,36 @@ const StudentDashboard = ({ navigation }) => {
     }
     >
       {/* Title */}
-      <Text style={styles.cardTitle}>{item.title}</Text>
+      {/* <Text style={styles.cardTitle}>{item.title}</Text> */}
 
       {/* Subject Capsule */}
       <View style={styles.subjectCapsule}>
-        <Text style={styles.subjectText}>{item.subject}</Text>
+        <Text style={styles.subjectText}>{item.course.category}</Text>
       </View>
 
       {/* Description */}
-      <Text style={styles.cardDescription}>{item.description}</Text>
+      <Text style={styles.cardDescription}>{item.course.description}</Text>
 
       {/* Progress */}
-      <Text style={styles.cardProgress}>Progress: {item.progress}%</Text>
+      {/* <Text style={styles.cardProgress}>Progress: {item.progress}%</Text> */}
 
       {/* Lessons */}
-      <Text style={styles.cardLessons}>{item.lessons} Lessons</Text>
+      {/* <Text style={styles.cardLessons}>{item.lessons} Lessons</Text> */}
     </TouchableOpacity>
   );
-
+  if (loading) {
+    return (
+      <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#2575fc" />
+      </SafeAreaView>
+    );
+  }
   return (
     <SafeAreaView style={styles.container}>
-      <CustomHeader
+      {/* <CustomHeader
         title="Dashboard"
         onBackPress={() => navigation.goBack()}
-      />
+      /> */}
 
       {/* Banner */}
       <LinearGradient
@@ -86,7 +110,7 @@ const StudentDashboard = ({ navigation }) => {
         style={styles.banner}
       >
         <Text style={styles.bannerText}>
-          👋 Welcome, Anish — 🚀 Keep exploring, learning never stops!
+          👋 Welcome, {userName || "User"} — 🚀 Keep exploring, learning never stops!
         </Text>
       </LinearGradient>
 

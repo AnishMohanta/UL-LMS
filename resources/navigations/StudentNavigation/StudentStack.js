@@ -9,7 +9,7 @@ const StudentStack = () => {
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false }}
-      initialRouteName="StudentTabs" // 👈 set the initial/root screen
+      initialRouteName="StudentTabs" // set the initial/root screen
     >
       {/* Root screen */}
       <Stack.Screen name="StudentTabs" component={StudentTabNavigator} />

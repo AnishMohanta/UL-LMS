@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,100 +8,105 @@ import {
   Modal,
   Dimensions,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import CustomHeader from '../../../components/CustomHeader';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ScrollView } from 'react-native-gesture-handler';
+import axios from 'axios';
+import { all_courses_url } from '../../../api/ApiEndPoints';
 
 const { height } = Dimensions.get('window');
 
 const StudentAllCourses = ({ navigation }) => {
-  const courses = [
-    { id: '1', title: 'React Native Basics', subject: 'Mobile Development', description: 'Learn the basics of React Native and build your first app.', lessons: 12, subscription: true },
-    { id: '2', title: 'Advanced JavaScript', subject: 'Programming', description: 'Deep dive into modern JavaScript concepts and patterns.', lessons: 20, subscription: true },
-    { id: '3', title: 'UI/UX Design Fundamentals', subject: 'Design', description: 'Understand the principles of good UI and UX design.', lessons: 10, subscription: true },
-    { id: '4', title: 'Python for Beginners', subject: 'Programming', description: 'Learn Python from scratch and build small projects.', lessons: 15, subscription: false },
-    { id: '5', title: 'Mastering C++ Basics', subject: 'Programming', description: 'Understand core C++ concepts and solve coding problems.', lessons: 25, subscription: false },
-    { id: '6', title: 'Responsive Web Design with HTML & CSS', subject: 'Web Development', description: 'Design mobile-friendly web pages using modern HTML5 and CSS3.', lessons: 18, subscription: false },
-    { id: '7', title: 'Express.js for Beginners', subject: 'Backend Development', description: 'Learn to build scalable REST APIs using Express.js framework.', lessons: 14, subscription: false },
-    { id: '8', title: 'Applied Machine Learning', subject: 'Artificial Intelligence', description: 'Work on ML projects like spam detection and image recognition.', lessons: 22, subscription: false },
-    { id: '9', title: 'Advanced SQL Queries', subject: 'Databases', description: 'Learn advanced SQL joins, triggers, and stored procedures.', lessons: 16, subscription: false },
-    { id: '10', title: 'Ethical Hacking Basics', subject: 'Security', description: 'Learn penetration testing and protect systems against threats.', lessons: 12, subscription: false },
+const [courseList, setCourseList] = useState([]);
+const [allCourses, setAllCourses] = useState([]);
+const [modalVisible, setModalVisible] = useState(false);
+const [selectedCategory, setSelectedCategory] = useState(null);
+const [loading, setLoading] = useState(true);
 
-  ];
-
-  const [courseList, setCourseList] = useState(courses);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedSubject, setSelectedSubject] = useState(null);
-
-  // Get unique subjects
-  const subjects = [...new Set(courses.map((c) => c.subject))];
-
-  // Subscribe handler
-  const handleSubscribe = (id) => {
-    // setCourseList((prev) =>
-    //   prev.map((course) =>
-    //     course.id === id ? { ...course, subscription: true } : course
-    //   )
-    // );
-    Alert.alert('Subscribed!', `You have subscribed to course ID: ${id}`);
+// Fetch courses from API
+useEffect(() => {
+  const fetchCourses = async () => {
+    try {
+      const response = await axios.get(all_courses_url);
+      const courses = response.data.map((course) => ({
+        id: course._id,
+        title: course.title,
+        category: course.category, 
+        description: course.description,
+        subscription: false,
+      }));
+      setCourseList(courses);
+      setAllCourses(courses); 
+    } catch (error) {
+      console.log('Error fetching courses:', error);
+      Alert.alert('Error', 'Unable to fetch courses');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Filter logic
-  const applyFilter = (subject) => {
-    setSelectedSubject(subject);
-    setCourseList(courses.filter((c) => c.subject === subject));
-    setModalVisible(false);
-  };
+  fetchCourses();
+}, []);
 
-  const clearFilter = () => {
-    setSelectedSubject(null);
-    setCourseList(courses);
-    setModalVisible(false);
-  };
+// Get unique categories for filter modal
+const categories = [...new Set(allCourses.map((c) => c.category))];
 
+// Subscribe handler
+const handleSubscribe = (id) => {
+  Alert.alert('Subscribed!', `You have subscribed to course ID: ${id}`);
+};
+
+// Filter logic
+const applyFilter = (category) => {
+  setSelectedCategory(category);
+  setCourseList(allCourses.filter((c) => c.category === category));
+  setModalVisible(false);
+};
+
+const clearFilter = () => {
+  setSelectedCategory(null);
+  setCourseList(allCourses); 
+  setModalVisible(false);
+};
   // Render each card
   const renderCourseCard = ({ item }) => (
     <View style={styles.card}>
       <Text style={styles.cardTitle}>{item.title}</Text>
       <View style={styles.subjectCapsule}>
-        <Text style={styles.subjectText}>{item.subject}</Text>
+        <Text style={styles.subjectText}>{item.category}</Text>
       </View>
       <Text style={styles.cardDescription}>{item.description}</Text>
-      <Text style={styles.cardLessons}>{item.lessons} Lessons</Text>
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity
-          style={[
-            styles.subscribeButton,
-            item.subscription && styles.subscribedButton,
-          ]}
-          onPress={() => !item.subscription && handleSubscribe(item.id)}
-          disabled={item.subscription}
+          style={styles.subscribeButton}
+          onPress={() => handleSubscribe(item.id)}
         >
-          <Text
-            style={[
-              styles.subscribeButtonText,
-              item.subscription && styles.subscribedButtonText,
-            ]}
-          >
-            {item.subscription ? 'Subscribed' : 'Subscribe'}
-          </Text>
+          <Text style={styles.subscribeButtonText}>Subscribe</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 
+  if (loading) {
+    return (
+      <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#2575fc" />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
-      <CustomHeader title="All Courses" onBackPress={() => navigation.goBack()} />
+      {/* <CustomHeader title="All Courses" onBackPress={() => navigation.goBack()} /> */}
 
-      {/* Welcome Banner */}
       <LinearGradient
         colors={['#6a11cb', '#2575fc']}
-          start={{ x: 0, y: 0 }}
+        start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         style={styles.bannerContainer}
       >
@@ -114,25 +119,24 @@ const StudentAllCourses = ({ navigation }) => {
         </TouchableOpacity>
       </LinearGradient>
 
-      {/* Capsule for All Courses number*/}
       <View style={styles.capsule}>
         <Text style={styles.capsuleText}>
-          📚 {selectedSubject ? selectedSubject : 'All Available Courses'}:{' '}
+          📚 All Available Courses: 
           <Text style={styles.capsuleNumber}>{courseList.length}</Text>
         </Text>
       </View>
 
-      {/* Courses List */}
       <FlatList
         data={courseList}
-        keyExtractor={(item) => item.id}
+        // keyExtractor={(item) => item.id}
+             keyExtractor={(item) => item.id.toString()}
         renderItem={renderCourseCard}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20 }}
         showsVerticalScrollIndicator={false}
       />
 
-      {/* Filter Modal */}
-    <Modal
+{/* Filter Modal */}
+<Modal
   visible={modalVisible}
   transparent
   animationType="slide"
@@ -140,29 +144,28 @@ const StudentAllCourses = ({ navigation }) => {
 >
   <View style={styles.modalOverlay}>
     <View style={styles.modalContent}>
-      <Text style={styles.modalTitle}>Filter by Subject</Text>
+      <Text style={styles.modalTitle}>Filter by Category</Text>
 
-      {/* Scrollable options */}
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 20 }}
       >
-        {subjects.map((subj, index) => (
+        {categories.map((cat, index) => (
           <TouchableOpacity
             key={index}
             style={[
               styles.modalOption,
-              selectedSubject === subj && styles.modalOptionSelected,
+              selectedCategory === cat && styles.modalOptionSelected,
             ]}
-            onPress={() => applyFilter(subj)}
+            onPress={() => applyFilter(cat)}
           >
             <Text
               style={[
                 styles.modalOptionText,
-                selectedSubject === subj && styles.modalOptionTextSelected,
+                selectedCategory === cat && styles.modalOptionTextSelected,
               ]}
             >
-              {subj}
+              {cat}
             </Text>
           </TouchableOpacity>
         ))}
@@ -174,13 +177,15 @@ const StudentAllCourses = ({ navigation }) => {
     </View>
   </View>
 </Modal>
+
     </SafeAreaView>
   );
 };
 
 export default StudentAllCourses;
 
-const styles = StyleSheet.create({
+
+ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
   bannerContainer: {
     flexDirection: 'row',
