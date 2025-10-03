@@ -35,7 +35,7 @@ export default function StudentProfile({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
       <View style={styles.glassCard}>
         {Platform.OS === 'ios' && (
