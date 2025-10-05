@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { useAuth } from "../navigations/index"
 import {login_url} from "../api/ApiEndPoints"
+import { StatusBar } from "react-native";
 
 const LoginScreen = ({ navigation }) => {
     const [email, setEmail] = useState('');
@@ -72,6 +73,7 @@ const handleLogin = async () => {
 
     return (
         <LinearGradient colors={['#E0F7FA', '#6200EE']} style={styles.container}>
+             
             <View style={styles.middleContainer}>
                 <Text style={styles.title}>UL LMS</Text>
 

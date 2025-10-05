@@ -44,6 +44,7 @@ const StudentDashboard = ({ navigation }) => {
         });
 
         if (response.data && Array.isArray(response.data)) {
+          console.log("subscribed1", response.data)
           setCourses(response.data);
         } else {
           setCourses([]);
