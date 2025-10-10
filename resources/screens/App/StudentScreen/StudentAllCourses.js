@@ -414,7 +414,7 @@ unavailableText: {
 },
 instructorText: {
   fontSize: moderateScale(12),
-  color: 'rgba(15, 35, 61, 1)#555',
+  color: 'rgba(15, 35, 61, 1)',
   marginBottom: verticalScale(4),
   // fontStyle: 'italic',
   fontWeight: '600',
