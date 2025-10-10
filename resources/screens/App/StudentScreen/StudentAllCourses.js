@@ -49,7 +49,7 @@ const StudentAllCourses = () => {
 
         setCourses((prev) => {
           const newList = isRefresh ? fetchedCourses : [...prev, ...fetchedCourses];
-          // Remove duplicates
+     
           const uniqueCourses = newList.filter(
             (course, index, self) =>
               index === self.findIndex((c) => c._id === course._id)
@@ -87,7 +87,7 @@ const StudentAllCourses = () => {
   // }, [isFocused]);
   useEffect(() => {
   if (isFocused) {
-    fetchCourses(1, true); // <-- replace the list with new data
+    fetchCourses(1, true); 
   }
 }, [isFocused]);
 

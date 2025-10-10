@@ -109,10 +109,10 @@ setCourses((prev) => {
   mappedCourses.forEach((newCourse) => {
     const index = updatedList.findIndex((c) => c.id === newCourse.id);
     if (index !== -1) {
-      // ✅ Update existing course details
+      
       updatedList[index] = { ...updatedList[index], ...newCourse };
     } else {
-      // ✅ Append new course (from next page)
+    
       updatedList.push(newCourse);
     }
   });
@@ -240,7 +240,7 @@ setCourses((prev) => {
         <Text style={styles.cardDescription}>{item.description}</Text>
         <Text style={styles.cardProgress}>Progress: {item.progress}%</Text>
 
-        {/* Conditional Footer */}
+        
         {isInactive ? (
           <Text style={styles.unavailableNote}>No longer available</Text>
         ) : null}

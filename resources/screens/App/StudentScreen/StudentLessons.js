@@ -302,6 +302,13 @@ export default function StudentLessons() {
             </View>
           </View>
         }
+         ListEmptyComponent={
+    !loading && (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>No lesson available now!!</Text>
+      </View>
+    )
+  }
       />
     </SafeAreaView>
   );
@@ -367,4 +374,16 @@ const styles = StyleSheet.create({
     borderRadius: moderateScale(8),
   },
   videoTitle: { color: '#fff', fontWeight: '600', fontSize: moderateScale(14) },
+  emptyContainer: {
+  flex: 1,
+  justifyContent: 'center',
+  alignItems: 'center',
+  padding: moderateScale(20),
+},
+emptyText: {
+  fontSize: moderateScale(16),
+  color: '#555',
+  fontWeight: '600',
+  textAlign: 'center',
+},
 });
