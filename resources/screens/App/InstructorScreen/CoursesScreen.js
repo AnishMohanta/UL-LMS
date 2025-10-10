@@ -1,429 +1,438 @@
+// CoursesScreen.js
 import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   FlatList,
+  StyleSheet,
   TouchableOpacity,
-  TextInput,
-  Modal,
+  ActivityIndicator,
   Alert,
+  Image,
+  Modal,
+  TextInput,
   ScrollView,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import LinearGradient from "react-native-linear-gradient";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
+import { launchImageLibrary } from "react-native-image-picker";
+import { my_courses_instructor, base_url } from "../../../api/ApiEndPoints";
 
-export default function CoursesScreen() {
-  // -----------------------------
-  // State variables
-  // -----------------------------
-  const [courses, setCourses] = useState([]);
+const DUMMY_THUMBNAIL = "https://via.placeholder.com/300x150.png?text=Course";
 
-  const [addModalVisible, setAddModalVisible] = useState(false);
-  const [editModalVisible, setEditModalVisible] = useState(false);
-  const [viewModalVisible, setViewModalVisible] = useState(false);
 
-  const [form, setForm] = useState({
-    title: "",
-    description: "",
-    category: "",
-    imageUrl: "",
-  });
+const CourseCard = ({ item, onPress, onToggleActive, onUpdate, togglingId }) => {
+  const imageUri = item.imageUrl || item.thumbnail || DUMMY_THUMBNAIL;
+  const isInactive = !item.isActive; // 👈 check if inactive
 
-  const [editForm, setEditForm] = useState({
-    id: "",
-    title: "",
-    category: "",
-  });
+  return (
+    <TouchableOpacity
+      activeOpacity={0.9}
+      onPress={onPress}
+      style={styles.courseCard}
+      disabled={isInactive} // disable card press if inactive
+    >
+      <View style={styles.imageContainer}>
+        <Image source={{ uri: imageUri }} style={styles.courseImage} resizeMode="cover" />
+      </View>
 
-  const [viewCourse, setViewCourse] = useState(null);
+      <View style={styles.courseContent}>
+        <Text style={styles.courseTitle}>{item.title || "Untitled Course"}</Text>
 
-  // -----------------------------
-  // Load dummy courses initially
-  // -----------------------------
-  useEffect(() => {
-    const dummyCourses = [
-      {
-        id: "1",
-        title: "React Native Basics",
-        instructor: "John Doe",
-        students: 120,
-        duration: "6 weeks",
-        category: "Mobile",
-        description: "Learn React Native basics.",
-      },
-      {
-        id: "2",
-        title: "Advanced JavaScript",
-        instructor: "Jane Smith",
-        students: 95,
-        duration: "4 weeks",
-        category: "Web",
-        description: "Deep dive into JavaScript.",
-      },
-      {
-        id: "3",
-        title: "Node.js & Express",
-        instructor: "Alex Johnson",
-        students: 150,
-        duration: "8 weeks",
-        category: "Backend",
-        description: "Build APIs with Node.js and Express.",
-      },
-    ];
-    setCourses(dummyCourses);
-  }, []);
-
-  // -----------------------------
-  // View Course Details
-  // -----------------------------
-  const handleViewCourse = async (id) => {
-    // ---------------- Example GET API (commented out) ----------------
-    /*
-    try {
-      const response = await fetch(`https://example.com/api/courses/${id}`);
-      const data = await response.json();
-      setViewCourse(data);
-    } catch (error) {
-      console.error(error);
-      Alert.alert("Error", "Failed to fetch course details.");
-    }
-    */
-
-    // For now, mock using local data
-    const course = courses.find((c) => c.id === id);
-    setViewCourse(course);
-    setViewModalVisible(true);
-  };
-
-  // -----------------------------
-  // Delete Course
-  // -----------------------------
-  const handleDelete = (id) => {
-    Alert.alert(
-      "Confirm Delete",
-      "Are you sure you want to delete this course?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            // ---------------- Example DELETE API (commented out) ----------------
-            /*
-            try {
-              const response = await fetch(`https://example.com/api/courses/${id}`, {
-                method: "DELETE",
-                headers: { Authorization: "Bearer YOUR_TOKEN_HERE" },
-              });
-              const result = await response.json();
-              Alert.alert("Success", result.message);
-            } catch (error) {
-              console.error(error);
-              Alert.alert("Error", "Failed to delete course");
-            }
-            */
-
-            // For now, remove from local state
-            setCourses((prev) => prev.filter((course) => course.id !== id));
-          },
-        },
-      ]
-    );
-  };
-
-  // -----------------------------
-  // Edit Course
-  // -----------------------------
-  const handleEditSubmit = async () => {
-    if (!editForm.title || !editForm.category) {
-      Alert.alert("Error", "Please fill all required fields.");
-      return;
-    }
-
-    // ---------------- Example PUT API (commented out) ----------------
-    /*
-    try {
-      const response = await fetch(`https://example.com/api/courses/${editForm.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer YOUR_TOKEN_HERE",
-        },
-        body: JSON.stringify({ title: editForm.title, category: editForm.category }),
-      });
-      const updatedCourse = await response.json();
-    } catch (error) {
-      console.error(error);
-      Alert.alert("Error", "Failed to update course");
-    }
-    */
-
-    // For now, update local state
-    setCourses((prev) =>
-      prev.map((course) =>
-        course.id === editForm.id
-          ? { ...course, title: editForm.title, category: editForm.category }
-          : course
-      )
-    );
-    setEditModalVisible(false);
-  };
-
-  // -----------------------------
-  // Render a single course card
-  // -----------------------------
-  const renderCourse = ({ item }) => (
-    <TouchableOpacity onPress={() => handleViewCourse(item.id)}>
-      <View style={styles.card}>
-        <View style={styles.cardHeader}>
-          <Text style={styles.courseTitle}>{item.title}</Text>
-          <Ionicons name="book-outline" size={22} color="#6200EE" />
-        </View>
-        <Text style={styles.courseInstructor}>By {item.instructor}</Text>
-        <View style={styles.courseInfoRow}>
-          <View style={styles.infoBadge}>
-            <Ionicons name="people-outline" size={16} color="#555" />
-            <Text style={styles.infoText}>{item.students} Students</Text>
-          </View>
-          <View style={styles.infoBadge}>
-            <Ionicons name="time-outline" size={16} color="#555" />
-            <Text style={styles.infoText}>{item.duration}</Text>
-          </View>
-          <View style={styles.infoBadge}>
-            <Ionicons name="pricetag-outline" size={16} color="#555" />
-            <Text style={styles.infoText}>{item.category}</Text>
-          </View>
+        <View style={styles.categoryChip}>
+          <Text style={styles.categoryText}>{item.category || "General"}</Text>
         </View>
 
-        {/* Edit & Delete Buttons */}
-        <View style={{ flexDirection: "row", marginTop: 10 }}>
+        <Text style={styles.courseDesc} numberOfLines={2}>
+          {item.description || "No description available."}
+        </Text>
+
+        <View style={styles.actionRow}>
+          {/* ✅ Active / Inactive Button */}
           <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: "#5817d2ff" }]}
-            onPress={() => {
-              setEditForm({ id: item.id, title: item.title, category: item.category });
-              setEditModalVisible(true);
+            style={[
+              styles.activeButton,
+              {
+                backgroundColor: item.isActive ? "#28a745" : "#ccc", // grey if inactive
+                opacity: togglingId === item._id ? 0.6 : 1,
+              },
+            ]}
+            onPress={(e) => {
+              e.stopPropagation();
+
+              // if inactive, disable toggle (can't click)
+              if (isInactive) return;
+
+              // Confirm before deactivating
+              if (item.isActive) {
+                Alert.alert(
+                  "Confirm Deactivation",
+                  "Do you want to deactivate this item?",
+                  [
+                    { text: "Cancel", style: "cancel" },
+                    { text: "Yes", onPress: () => onToggleActive(item) },
+                  ]
+                );
+              } else {
+                onToggleActive(item);
+              }
             }}
+            disabled={isInactive || togglingId === item._id}
           >
-            <Text style={styles.actionText}>Edit</Text>
+            {togglingId === item._id ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <>
+                <Ionicons
+                  name={item.isActive ? "checkmark-circle" : "pause-circle"}
+                  size={18}
+                  color="#fff"
+                />
+                <Text style={styles.buttonText}>
+                  {item.isActive ? "Active" : "Inactive"}
+                </Text>
+              </>
+            )}
           </TouchableOpacity>
+
+          {/* ✅ Update Button */}
           <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: "#ff3b30", marginLeft: 10 }]}
-            onPress={() => handleDelete(item.id)}
+            style={[
+              styles.updateButton,
+              isInactive && { opacity: 0.5 }, // dim if inactive
+            ]}
+            onPress={(e) => {
+              e.stopPropagation();
+              if (isInactive) return; // disable update if inactive
+              onUpdate(item);
+            }}
+            disabled={isInactive}
           >
-            <Text style={styles.actionText}>Delete</Text>
+            <Ionicons name="pencil" size={18} color="#fff" />
+            <Text style={styles.buttonText}>Update</Text>
           </TouchableOpacity>
         </View>
       </View>
     </TouchableOpacity>
   );
+};
+
+
+export default function CoursesScreen({ navigation }) {
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [togglingId, setTogglingId] = useState(null);
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("");
+  const [thumbnail, setThumbnail] = useState(null);
+  const [updating, setUpdating] = useState(false);
+
+
+  const fetchCourses = async (pageNumber = 1) => {
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      if (!token) return navigation.replace("LoginScreen");
+      if (pageNumber === 1) setLoading(true);
+
+      const response = await axios.get(
+        `${my_courses_instructor}page=${pageNumber}&limit=10&sortBy=createdAt&sortOrder=desc`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const coursesArray = response.data?.data?.data || [];
+      if (pageNumber === 1) setCourses(coursesArray);
+      else setCourses((prev) => [...prev, ...coursesArray]);
+
+      const pagination = response.data?.data?.pagination;
+      setHasMore(Boolean(pagination?.hasNextPage));
+    } catch (error) {
+      console.log("Fetch Courses Error:", error.response?.data || error.message);
+      Alert.alert("Error", "Failed to fetch courses!");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCourses(1);
+    const unsubscribe = navigation.addListener("focus", () => fetchCourses(1));
+    return unsubscribe;
+  }, []);
+
+  const loadMore = () => {
+    if (!loading && hasMore) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      fetchCourses(nextPage);
+    }
+  };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    setPage(1);
+    fetchCourses(1);
+  };
+
+  const handleAddCourse = () => navigation.navigate("CreateCourse");
+  const handleOpenCourse = (item) => navigation.navigate("CourseDetails", { course: item });
+
+
+  const handleToggleActive = async (course) => {
+  setTogglingId(course._id);
+
+  try {
+    const token = await AsyncStorage.getItem("userToken");
+    const response = await axios.delete(`${base_url}/courses/${course._id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (response.data?.success) {
+      // Remove course from UI
+      setCourses((prev) => prev.filter((c) => c._id !== course._id));
+      Alert.alert("Success", "Course deleted successfully");
+    } else {
+      Alert.alert("Error", "Unexpected response from server");
+    }
+  } catch (error) {
+    console.log("Delete Error:", error.response?.data || error.message);
+    Alert.alert("Error", "Failed to delete course");
+  } finally {
+    setTogglingId(null);
+  }
+};
+
+  const handleUpdateCourse = (course) => {
+    setSelectedCourse(course);
+    setTitle(course.title);
+    setDescription(course.description);
+    setCategory(course.category);
+    setThumbnail(course.imageUrl || null);
+    setModalVisible(true);
+  };
+
+  const selectImage = async () => {
+    const result = await launchImageLibrary({ mediaType: "photo" });
+    if (!result.didCancel && result.assets && result.assets.length > 0) {
+      setThumbnail(result.assets[0].uri);
+    }
+  };
+
+  const submitUpdate = async () => {
+    if (!title.trim()) return Alert.alert("Validation", "Title is required");
+    setUpdating(true);
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      let payload;
+      let headers = { Authorization: `Bearer ${token}` };
+
+      if (thumbnail && !thumbnail.startsWith("http")) {
+        payload = new FormData();
+        payload.append("title", title);
+        payload.append("description", description);
+        payload.append("category", category);
+
+        const fileName = thumbnail.split("/").pop();
+        payload.append("image", { uri: thumbnail, type: "image/jpeg", name: fileName });
+        headers["Content-Type"] = "multipart/form-data";
+      } else {
+        payload = { title, description, category, imageUrl: thumbnail || "" };
+        headers["Content-Type"] = "application/json";
+      }
+
+      const response = await axios.put(`${base_url}/courses/${selectedCourse._id}`, payload, {
+        headers,
+      });
+
+      const updatedCourse = {
+        ...selectedCourse,
+        ...response.data,
+        thumbnail: response.data.imageUrl || thumbnail,
+        imageUrl: response.data.imageUrl || thumbnail,
+      };
+
+      setCourses((prev) =>
+        prev.map((c) => (c._id === selectedCourse._id ? updatedCourse : c))
+      );
+
+      Alert.alert("Success", "Course updated successfully");
+      setModalVisible(false);
+    } catch (error) {
+      console.log("Update Error:", error.response?.data || error.message);
+      Alert.alert("Error", "Failed to update course");
+    } finally {
+      setUpdating(false);
+    }
+  };
 
   return (
-    <LinearGradient colors={["#ffffffff", "#ffffffff"]} style={{ flex: 1 }}>
-      <View style={styles.container}>
-        {courses.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Ionicons name="book-outline" size={60} color="gray" />
-            <Text style={styles.emptyText}>No Courses Available</Text>
-          </View>
-        ) : (
-          <FlatList
-            data={courses}
-            keyExtractor={(item) => item.id}
-            renderItem={renderCourse}
-            contentContainerStyle={{ padding: 15, paddingBottom: 100 }}
-          />
-        )}
+    <View style={styles.container}>
+      {loading && courses.length === 0 ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#09203F" />
+          <Text style={styles.loadingText}>Loading Courses...</Text>
+        </View>
+      ) : courses.length === 0 ? (
+        <View style={styles.noDataContainer}>
+          <Ionicons name="book-outline" size={90} color="#09203F" />
+          <Text style={styles.noDataText}>No Courses Found</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={courses}
+          keyExtractor={(item) => item._id}
+          renderItem={({ item }) => (
+            <CourseCard
+              item={item}
+              onPress={() => handleOpenCourse(item)}
+              onToggleActive={handleToggleActive}
+              onUpdate={handleUpdateCourse}
+              togglingId={togglingId}
+            />
+          )}
+          contentContainerStyle={styles.listContainer}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.5}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+        />
+      )}
 
-        {/* Floating Add Course Button */}
-        <TouchableOpacity
-          style={styles.fab}
-          onPress={() => setAddModalVisible(true)}
-        >
-          <Ionicons name="add" size={30} color="#fff" />
-        </TouchableOpacity>
+      <TouchableOpacity style={styles.fab} onPress={handleAddCourse}>
+        <Ionicons name="add" size={34} color="#fff" />
+      </TouchableOpacity>
 
-        {/* -----------------------------
-            Add Course Modal
-        ----------------------------- */}
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={addModalVisible}
-          onRequestClose={() => setAddModalVisible(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <ScrollView>
-                <Text style={styles.modalTitle}>Add New Course</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Title (required)"
-                  value={form.title}
-                  onChangeText={(text) => setForm({ ...form, title: text })}
-                />
-                <TextInput
-                  style={[styles.input, { height: 80 }]}
-                  placeholder="Description (required)"
-                  value={form.description}
-                  onChangeText={(text) => setForm({ ...form, description: text })}
-                  multiline
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Category (required)"
-                  value={form.category}
-                  onChangeText={(text) => setForm({ ...form, category: text })}
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Image URL (optional)"
-                  value={form.imageUrl}
-                  onChangeText={(text) => setForm({ ...form, imageUrl: text })}
-                />
-                <TouchableOpacity
-                  style={styles.submitButton}
-                  onPress={() => Alert.alert("Add course logic here")}
-                >
-                  <Text style={styles.submitButtonText}>Submit</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.submitButton, { backgroundColor: "#bbb" }]}
-                  onPress={() => setAddModalVisible(false)}
-                >
-                  <Text style={styles.submitButtonText}>Cancel</Text>
-                </TouchableOpacity>
-              </ScrollView>
-            </View>
-          </View>
-        </Modal>
+      {/* Modal Section */}
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <ScrollView>
+              <Text style={styles.modalTitle}>Update Course</Text>
 
-        {/* -----------------------------
-            Edit Course Modal
-        ----------------------------- */}
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={editModalVisible}
-          onRequestClose={() => setEditModalVisible(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <ScrollView>
-                <Text style={styles.modalTitle}>Edit Course</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Title (required)"
-                  value={editForm.title}
-                  onChangeText={(text) => setEditForm({ ...editForm, title: text })}
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Category (required)"
-                  value={editForm.category}
-                  onChangeText={(text) => setEditForm({ ...editForm, category: text })}
-                />
-                <TouchableOpacity
-                  style={styles.submitButton}
-                  onPress={handleEditSubmit}
-                >
-                  <Text style={styles.submitButtonText}>Update</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.submitButton, { backgroundColor: "#bbb" }]}
-                  onPress={() => setEditModalVisible(false)}
-                >
-                  <Text style={styles.submitButtonText}>Cancel</Text>
-                </TouchableOpacity>
-              </ScrollView>
-            </View>
-          </View>
-        </Modal>
+              <TextInput style={styles.input} placeholder="Title" value={title} onChangeText={setTitle} />
+              <TextInput
+                style={[styles.input, { height: 80 }]}
+                placeholder="Description"
+                value={description}
+                onChangeText={setDescription}
+                multiline
+              />
+              <TextInput style={styles.input} placeholder="Category" value={category} onChangeText={setCategory} />
 
-        {/* -----------------------------
-            View Course Modal
-        ----------------------------- */}
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={viewModalVisible}
-          onRequestClose={() => setViewModalVisible(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <ScrollView>
-                {viewCourse ? (
-                  <>
-                    <Text style={styles.modalTitle}>{viewCourse.title}</Text>
-                    <Text style={styles.detailLabel}>Instructor:</Text>
-                    <Text style={styles.detailText}>{viewCourse.instructor}</Text>
-                    <Text style={styles.detailLabel}>Category:</Text>
-                    <Text style={styles.detailText}>{viewCourse.category}</Text>
-                    <Text style={styles.detailLabel}>Description:</Text>
-                    <Text style={styles.detailText}>{viewCourse.description}</Text>
-                    <Text style={styles.detailLabel}>Duration:</Text>
-                    <Text style={styles.detailText}>{viewCourse.duration}</Text>
-                    <Text style={styles.detailLabel}>Students Enrolled:</Text>
-                    <Text style={styles.detailText}>{viewCourse.students}</Text>
-
-                    <TouchableOpacity
-                      style={[styles.submitButton, { marginTop: 15 }]}
-                      onPress={() => setViewModalVisible(false)}
-                    >
-                      <Text style={styles.submitButtonText}>Close</Text>
-                    </TouchableOpacity>
-                  </>
+              <TouchableOpacity style={styles.imagePicker} onPress={selectImage}>
+                {thumbnail ? (
+                  <Image source={{ uri: thumbnail }} style={styles.previewImage} />
                 ) : (
-                  <Text>Loading...</Text>
+                  <Text style={{ color: "#555" }}>Pick an Image</Text>
                 )}
-              </ScrollView>
-            </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.submitButton, updating && { opacity: 0.6 }]}
+                onPress={submitUpdate}
+                disabled={updating}
+              >
+                <Text style={styles.submitText}>{updating ? "Updating..." : "Update"}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
+                <Text style={styles.submitText}>Cancel</Text>
+              </TouchableOpacity>
+            </ScrollView>
           </View>
-        </Modal>
-      </View>
-    </LinearGradient>
+        </View>
+      </Modal>
+    </View>
   );
 }
 
-// -----------------------------
-// Styles
-// -----------------------------
+// Styles remain unchanged
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "transparent" },
-
-  card: {
+  container: { flex: 1, backgroundColor: "#fff" },
+  listContainer: { padding: 12, paddingBottom: 120 },
+  courseCard: {
     backgroundColor: "#fff",
     borderRadius: 16,
-    padding: 15,
-    marginBottom: 15,
+    marginBottom: 16,
+    overflow: "hidden",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 3 },
     shadowRadius: 6,
-    elevation: 4,
+    elevation: 5,
   },
-  cardHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  courseTitle: { fontSize: 16, fontWeight: "700", color: "#6200EE" },
-  courseInstructor: { marginTop: 4, fontSize: 13, color: "#555" },
-  courseInfoRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 10, flexWrap: "wrap" },
-  infoBadge: { flexDirection: "row", alignItems: "center", backgroundColor: "#f1f4ff", paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12, marginTop: 4 },
-  infoText: { marginLeft: 6, fontSize: 12, color: "#333" },
-
-  emptyContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
-  emptyText: { marginTop: 10, fontSize: 16, color: "gray" },
-
-  fab: { position: "absolute", bottom: 25, right: 25, backgroundColor: "#6200EE", width: 60, height: 60, borderRadius: 30, justifyContent: "center", alignItems: "center", elevation: 6 },
-
-  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", padding: 20 },
-  modalContent: { backgroundColor: "#fff", borderRadius: 16, padding: 20, maxHeight: "90%" },
-  modalTitle: { fontSize: 18, fontWeight: "700", marginBottom: 15 },
-  detailLabel: { fontWeight: "600", marginTop: 10 },
-  detailText: { fontSize: 14, color: "#333", marginBottom: 5 },
-
-  input: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, paddingHorizontal: 10, paddingVertical: 8, marginBottom: 12 },
-  submitButton: { backgroundColor: "#6200EE", paddingVertical: 12, borderRadius: 10, alignItems: "center", marginBottom: 10 },
-  submitButtonText: { color: "#fff", fontWeight: "600" },
-
-  actionButton: { paddingVertical: 6, paddingHorizontal: 15, borderRadius: 8 },
-  actionText: { color: "#fff", fontWeight: "600" },
+  imageContainer: { width: "100%", height: 150, backgroundColor: "#eee" },
+  courseImage: { width: "100%", height: "100%" },
+  courseContent: { padding: 12 },
+  courseTitle: { fontSize: 16, fontWeight: "700", color: "#000" },
+  categoryChip: {
+    alignSelf: "flex-start",
+    backgroundColor: "#09203F",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 16,
+    marginVertical: 4,
+  },
+  categoryText: { color: "#fff", fontSize: 12, fontWeight: "600" },
+  courseDesc: { fontSize: 13, color: "#555", marginVertical: 4 },
+  actionRow: { flexDirection: "row", gap: 10 },
+  activeButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  updateButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#09203F",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  buttonText: { color: "#fff", marginLeft: 4, fontSize: 12 },
+  fab: {
+    position: "absolute",
+    right: 20,
+    bottom: 25,
+    backgroundColor: "#09203F",
+    width: 65,
+    height: 65,
+    borderRadius: 32.5,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 10,
+    zIndex: 10,
+  },
+  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
+  modalContainer: { backgroundColor: "#fff", borderRadius: 14, padding: 16, width: "90%", maxHeight: "90%" },
+  modalTitle: { fontSize: 18, fontWeight: "700", marginBottom: 10 },
+  input: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, padding: 10, marginBottom: 10 },
+  imagePicker: { height: 150, borderWidth: 1, borderColor: "#ccc", borderRadius: 8, justifyContent: "center", alignItems: "center", marginBottom: 10 },
+  previewImage: { width: "100%", height: "100%", borderRadius: 8 },
+  submitButton: { backgroundColor: "#09203F", padding: 12, borderRadius: 8, alignItems: "center", marginVertical: 5 },
+  submitText: { color: "#fff", fontWeight: "700" },
+  cancelButton: { backgroundColor: "#888", padding: 12, borderRadius: 8, alignItems: "center", marginVertical: 5 },
+  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
+  loadingText: { marginTop: 10, fontSize: 16, color: "#09203F" },
+  noDataContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
+  noDataText: { fontSize: 16, color: "#09203F", marginTop: 10 },
 });

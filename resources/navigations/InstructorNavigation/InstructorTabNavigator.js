@@ -31,7 +31,7 @@ export default function InstructorTabNavigation() {
           return <Ionicons name={iconName} size={size} color={color} />;
         },
 
-        tabBarActiveTintColor: '#6200EE', // active tab color
+        tabBarActiveTintColor: '#09203F', // active tab color
         tabBarInactiveTintColor: "gray",    // inactive tab color
         tabBarStyle: {
           backgroundColor: "#ffffff",
@@ -46,7 +46,6 @@ export default function InstructorTabNavigation() {
         },
       })}
     >
-      <Tab.Screen name="Dashboard" component={InstructorDashboard} />
       <Tab.Screen name="Courses" component={CoursesScreen} />
       <Tab.Screen name="Students" component={StudentsScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
