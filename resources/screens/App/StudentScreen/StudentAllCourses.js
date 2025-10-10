@@ -219,6 +219,9 @@ const renderCourseCard = ({ item }) => {
         <View style={[styles.subjectCapsule, isInactive ]}>
           <Text style={styles.subjectText}>{item.category}</Text>
         </View>
+         <Text style={[styles.instructorText, isInactive && { color: '#aaa' }]}>
+          By {item.instructor?.name}
+        </Text>
 
         <Text style={[styles.cardDescription, isInactive]}>
           {item.description}
@@ -408,5 +411,12 @@ unavailableText: {
   fontSize: moderateScale(13),
   fontWeight: '600',
   fontStyle: 'italic',
+},
+instructorText: {
+  fontSize: moderateScale(12),
+  color: 'rgba(15, 35, 61, 1)#555',
+  marginBottom: verticalScale(4),
+  // fontStyle: 'italic',
+  fontWeight: '600',
 },
 });

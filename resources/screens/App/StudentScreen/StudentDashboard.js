@@ -72,6 +72,7 @@ const StudentDashboard = ({ navigation }) => {
         const mappedCourses = fetchedCourses.map((item) => ({
           id: item._id,
            courseId: item.course._id, 
+           instructorName: item.course?.instructor?.name || 'Instructor',
           title: item.course?.title || 'Untitled Course',
           category: item.course?.category || 'Uncategorized',
           description: item.course?.description || 'No description available',
@@ -236,6 +237,9 @@ setCourses((prev) => {
         <View style={styles.subjectCapsule}>
           <Text style={styles.subjectText}>{item.category}</Text>
         </View>
+ <Text style={styles.instructorText}>
+          By {item.instructorName || 'Instructor'}
+        </Text>
 
         <Text style={styles.cardDescription}>{item.description}</Text>
         <Text style={styles.cardProgress}>Progress: {item.progress}%</Text>
@@ -407,4 +411,11 @@ unavailableNote: {
     marginTop: verticalScale(40),
     fontSize: moderateScale(15),
   },
+instructorText: {
+  fontSize: moderateScale(12),
+  color: 'rgba(15, 35, 61, 1)#555',
+  marginBottom: verticalScale(4),
+  // fontStyle: 'italic',
+  fontWeight: '600',
+},
 });
