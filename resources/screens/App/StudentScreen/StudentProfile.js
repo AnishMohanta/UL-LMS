@@ -60,10 +60,10 @@ const StudentProfile = ({ navigation }) => {
   const confirmLogout = () => {
     Alert.alert(
       'Logout',
-      'Do you want to logout?',
+    "Are you sure you want to logout?",
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Yes', onPress: handleLogout, style: 'destructive' },
+        { text: 'Logout', onPress: handleLogout, style: 'destructive' },
       ],
       { cancelable: true }
     );

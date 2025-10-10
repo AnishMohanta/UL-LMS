@@ -12,7 +12,7 @@ export const enrolled_courses_url = `${base_url}/enrollments/my-enrollments`;
 export const enrolled_coursesByid_url = `${base_url}/enrollments`;
 export const get_lessonByid_url = `${base_url}/lessons/course`;
 export const complete_lessonByid_url = `${base_url}/enrollments/mark-complete`;
-export const enrolled_courses_url = `${base_url}/enrollments`;
+// export const enrolled_courses_url = `${base_url}/enrollments`;
 
 //instructors APIs
 export const my_courses_instructor = `${base_url}/courses/my-courses?`;
