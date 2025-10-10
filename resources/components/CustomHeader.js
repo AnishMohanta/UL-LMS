@@ -25,7 +25,7 @@ const CustomHeader = ({ title, onBackPress }) => {
 const styles = StyleSheet.create({
   container: {
     height: 60,
-    backgroundColor: '#6200EE',
+    backgroundColor: 'rgba(15, 35, 61, 1)',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',

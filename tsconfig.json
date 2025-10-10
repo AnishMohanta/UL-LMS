@@ -1,5 +1,18 @@
 {
   "extends": "@react-native/typescript-config",
-  "include": ["**/*.ts", "**/*.tsx", "App.js"],
-  "exclude": ["**/node_modules", "**/Pods"]
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitAny": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "include": ["**/*.ts", "**/*.tsx", "App.js", "resources/screens/SplashScreen.js", "resources/screens/LoginScreen.js", "resources/screens/App/StudentScreen/StudentProfile.js", "resources/screens/App/StudentScreen/StudentDashboard.js", "resources/navigations/AppStack.js", "resources/navigations/AuthStack.js", "resources/navigations/index.js", "resources/navigations/AppStack.js", "resources/navigations/StudentNavigation/StudentTabNavigator.js"], "resources/navigations/StudentNavigation/StudentStack.js",
+  "exclude": ["node_modules", "Pods"]
 }
