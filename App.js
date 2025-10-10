@@ -1,24 +1,37 @@
-;import { View, Text } from 'react-native'
-import React from 'react'
-import { StatusBar } from "react-native";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import Navigation from './resources/navigations/index'
+// import React from 'react';
+// import { StatusBar } from 'react-native';
+// import { SafeAreaProvider } from 'react-native-safe-area-context';
+// import Navigation from './resources/navigations'; 
+// import Toast from 'react-native-toast-message';
+
+// const App: React.FC = () => {
+//   return (
+//     <SafeAreaProvider>
+//       <StatusBar barStyle="dark-content" backgroundColor="white" />
+//       <Navigation />
+//       <Toast />
+//     </SafeAreaProvider>
+//   );
+// };
+
+// export default App;
 
 
 
+import React from 'react';
+import { StatusBar } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import Navigation from './resources/navigations';
+import Toast from 'react-native-toast-message';
 
-
-
-export default function App() {
-
+const App = () => {
   return (
     <SafeAreaProvider>
-        <StatusBar barStyle="dark-content" backgroundColor="white" />
-        <Navigation />
-     
+      <StatusBar barStyle="dark-content" backgroundColor="white" />
+      <Navigation />
+      <Toast />
     </SafeAreaProvider>
-  )
-}
+  );
+};
 
+export default App;

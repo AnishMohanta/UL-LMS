@@ -1,100 +1,267 @@
-import React, { useState, useEffect } from 'react';
+
+
+
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   FlatList,
-  Modal,
-  Dimensions,
-  Alert,
+  TouchableOpacity,
   ActivityIndicator,
+  Alert,
+  Image,
+  RefreshControl,
 } from 'react-native';
-import CustomHeader from '../../../components/CustomHeader';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import { ScrollView } from 'react-native-gesture-handler';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { all_courses_url } from '../../../api/ApiEndPoints';
+import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
+import { all_courses_url, enrolled_coursesByid_url } from '../../../api/ApiEndPoints';
+import Toast from 'react-native-toast-message';
+import { useIsFocused } from '@react-navigation/native';
 
-const { height } = Dimensions.get('window');
+const StudentAllCourses = () => {
+  const [courses, setCourses] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasNextPage, setHasNextPage] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const  isFocused = useIsFocused()
 
-const StudentAllCourses = ({ navigation }) => {
-const [courseList, setCourseList] = useState([]);
-const [allCourses, setAllCourses] = useState([]);
-const [modalVisible, setModalVisible] = useState(false);
-const [selectedCategory, setSelectedCategory] = useState(null);
-const [loading, setLoading] = useState(true);
+  const API_URL = all_courses_url;
 
-// Fetch courses from API
-useEffect(() => {
-  const fetchCourses = async () => {
-    try {
-      const response = await axios.get(all_courses_url);
-      const courses = response.data.map((course) => ({
-        id: course._id,
-        title: course.title,
-        category: course.category, 
-        description: course.description,
-        subscription: false,
-      }));
-      setCourseList(courses);
-      setAllCourses(courses); 
-    } catch (error) {
-      console.log('Error fetching courses:', error);
-      Alert.alert('Error', 'Unable to fetch courses');
-    } finally {
-      setLoading(false);
+  const fetchCourses = useCallback(
+    async (pageNumber = 1, isRefresh = false) => {
+      if (loading) return;
+      try {
+        if (!isRefresh) setLoading(true);
+
+        const token = await AsyncStorage.getItem('userToken');
+        const response = await axios.get(
+          `${API_URL}?page=${pageNumber}&limit=10&sortBy=createdAt&sortOrder=desc`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        const fetchedCourses = response?.data?.data?.data || [];
+        const pagination = response?.data?.data?.pagination || {};
+
+        setCourses((prev) => {
+          const newList = isRefresh ? fetchedCourses : [...prev, ...fetchedCourses];
+          // Remove duplicates
+          const uniqueCourses = newList.filter(
+            (course, index, self) =>
+              index === self.findIndex((c) => c._id === course._id)
+          );
+          return uniqueCourses;
+        });
+
+        setHasNextPage(pagination.hasNextPage);
+        setPage(pageNumber);
+
+        if (isRefresh) {
+          Toast.show({
+            type: 'success',
+            text1: 'Courses refreshed',
+            text2: 'Course list updated successfully 🎉',
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching courses:', error.message);
+        Toast.show({
+          type: 'error',
+          text1: 'Failed to load courses',
+          text2: 'Something went wrong',
+        });
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [loading, API_URL]
+  );
+
+  // useEffect(() => {
+  //   fetchCourses(1);
+  // }, [isFocused]);
+  useEffect(() => {
+  if (isFocused) {
+    fetchCourses(1, true); // <-- replace the list with new data
+  }
+}, [isFocused]);
+
+  const onRefresh = () => {
+    // setHasNextPage(true);
+    setRefreshing(true);
+    fetchCourses(1, true);
+  };
+
+  const loadMore = () => {
+    if (hasNextPage && !loading) {
+      fetchCourses(page + 1);
     }
   };
 
-  fetchCourses();
-}, []);
+  const handleEnroll = async (courseId) => {
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      if (!token) {
+        Alert.alert('Unauthorized', 'Please log in to enroll in a course.');
+        return;
+      }
 
-// Get unique categories for filter modal
-const categories = [...new Set(allCourses.map((c) => c.category))];
+      const response = await axios.post(
+        enrolled_coursesByid_url,
+        { courseId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-// Subscribe handler
-const handleSubscribe = (id) => {
-  Alert.alert('Subscribed!', `You have subscribed to course ID: ${id}`);
-};
+      if (response.status === 200 || response.status === 201) {
+        Toast.show({
+          type: 'success',
+          text1: 'Enrolled successfully 🎓',
+          text2: 'You are now enrolled in this course!',
+        });
+        setCourses((prev) =>
+          prev.map((c) => (c._id === courseId ? { ...c, enrollment: true } : c))
+        );
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Enrollment failed',
+          text2: 'Please try again later ',
+        });
+      }
+    } catch (error) {
+      console.error('Enroll error:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Something went wrong',
+        text2: 'Unable to enroll in this course.',
+      });
+    }
+  };
 
-// Filter logic
-const applyFilter = (category) => {
-  setSelectedCategory(category);
-  setCourseList(allCourses.filter((c) => c.category === category));
-  setModalVisible(false);
-};
+  
+// const renderCourseCard = ({ item }) => (
+//   <View style={styles.card}>
+//     <Image
+//       source={{ uri: item.imageUrl }}
+//       style={styles.thumbnail}
+//       resizeMode="cover"
+//     />
+//     <View style={styles.cardContent}>
+//       <Text style={styles.cardTitle}>{item.title}</Text>
+//       <View style={styles.subjectCapsule}>
+//         <Text style={styles.subjectText}>{item.category}</Text>
+//       </View>
+//       <Text style={styles.cardDescription}>{item.description}</Text>
 
-const clearFilter = () => {
-  setSelectedCategory(null);
-  setCourseList(allCourses); 
-  setModalVisible(false);
-};
-  // Render each card
-  const renderCourseCard = ({ item }) => (
-    <View style={styles.card}>
-      <Text style={styles.cardTitle}>{item.title}</Text>
-      <View style={styles.subjectCapsule}>
-        <Text style={styles.subjectText}>{item.category}</Text>
-      </View>
-      <Text style={styles.cardDescription}>{item.description}</Text>
+//       <View style={styles.rowContainer}>
+//         {item.isActive ? (
+//           item.enrollment ? (
+//             // Disabled "Enrolled" button
+//             <View style={[styles.enrollButton, styles.disabledButton]}>
+//               <Text style={styles.enrollButtonText}>Enrolled</Text>
+//             </View>
+//           ) : (
+//             // Active "Enroll Now" button with confirmation
+//             <TouchableOpacity
+//               style={styles.enrollButton}
+//               onPress={() => {
+//                 Alert.alert(
+//                   'Enroll Confirmation',
+//                   'Do you want to enroll?',
+//                   [
+//                     { text: 'No', style: 'cancel' },
+//                     { text: 'Yes', onPress: () => handleEnroll(item._id) },
+//                   ],
+//                   { cancelable: true }
+//                 );
+//               }}
+//             >
+//               <Text style={styles.enrollButtonText}>Enroll Now</Text>
+//             </TouchableOpacity>
+//           )
+//         ) : (
+//           <View style={{ width: scale(100) }} /> // Hide button if not active
+//         )}
 
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={styles.subscribeButton}
-          onPress={() => handleSubscribe(item.id)}
-        >
-          <Text style={styles.subscribeButtonText}>Subscribe</Text>
-        </TouchableOpacity>
+//         <Text
+//           style={[
+//             styles.statusText,
+//             item.isActive ? styles.active : styles.inactive,
+//           ]}
+//         >
+//           {item.isActive ? 'Active' : 'Not Active'}
+//         </Text>
+//       </View>
+//     </View>
+//   </View>
+// );
+
+const renderCourseCard = ({ item }) => {
+  const isInactive = !item.isActive;
+
+  return (
+    <View style={[styles.card, isInactive && styles.inactiveCard]}>
+      <Image
+        source={{ uri: item.imageUrl }}
+        style={[styles.thumbnail, isInactive ]}
+        resizeMode="cover"
+      />
+      <View style={styles.cardContent}>
+        <Text style={[styles.cardTitle, isInactive ]}>
+          {item.title}
+        </Text>
+
+        <View style={[styles.subjectCapsule, isInactive ]}>
+          <Text style={styles.subjectText}>{item.category}</Text>
+        </View>
+
+        <Text style={[styles.cardDescription, isInactive]}>
+          {item.description}
+        </Text>
+
+        {isInactive ? (
+          <View style={styles.unavailableContainer}>
+            <Text style={styles.unavailableText}>No longer available</Text>
+          </View>
+        ) : (
+          <View style={styles.rowContainer}>
+            {item.enrollment ? (
+              <View style={[styles.enrollButton, styles.disabledButton]}>
+                <Text style={styles.enrollButtonText}>Enrolled</Text>
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={styles.enrollButton}
+                onPress={() => {
+                  Alert.alert(
+                    'Enroll Confirmation',
+                    'Do you want to enroll?',
+                    [
+                      { text: 'No', style: 'cancel' },
+                      { text: 'Yes', onPress: () => handleEnroll(item._id) },
+                    ],
+                    { cancelable: true }
+                  );
+                }}
+              >
+                <Text style={styles.enrollButtonText}>Enroll Now</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
       </View>
     </View>
   );
+};
 
-  if (loading) {
+  if (loading && courses.length === 0) {
     return (
-      <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+      <SafeAreaView style={[styles.container, styles.center]}>
         <ActivityIndicator size="large" color="#2575fc" />
       </SafeAreaView>
     );
@@ -102,197 +269,144 @@ const clearFilter = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* <CustomHeader title="All Courses" onBackPress={() => navigation.goBack()} /> */}
-
       <LinearGradient
-        colors={['#6a11cb', '#2575fc']}
+        colors={['rgba(15, 35, 61, 1)', '#9eecf7ff']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         style={styles.bannerContainer}
       >
         <Text style={styles.bannerText}>✨ Keep exploring, learning never stops!</Text>
-        <TouchableOpacity
-          style={styles.filterButton}
-          onPress={() => setModalVisible(true)}
-        >
-          <Ionicons name="filter" size={20} color="#fff" />
-        </TouchableOpacity>
       </LinearGradient>
 
-      <View style={styles.capsule}>
-        <Text style={styles.capsuleText}>
-          📚 All Available Courses: 
-          <Text style={styles.capsuleNumber}>{courseList.length}</Text>
-        </Text>
-      </View>
-
       <FlatList
-        data={courseList}
-        // keyExtractor={(item) => item.id}
-             keyExtractor={(item) => item.id.toString()}
+        data={courses}
+        keyExtractor={(item) => item._id}
         renderItem={renderCourseCard}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20 }}
+        contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#2575fc']} />
+        }
+        ListFooterComponent={loading && <ActivityIndicator color="#2575fc" />}
       />
-
-{/* Filter Modal */}
-<Modal
-  visible={modalVisible}
-  transparent
-  animationType="slide"
-  onRequestClose={() => setModalVisible(false)}
->
-  <View style={styles.modalOverlay}>
-    <View style={styles.modalContent}>
-      <Text style={styles.modalTitle}>Filter by Category</Text>
-
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 20 }}
-      >
-        {categories.map((cat, index) => (
-          <TouchableOpacity
-            key={index}
-            style={[
-              styles.modalOption,
-              selectedCategory === cat && styles.modalOptionSelected,
-            ]}
-            onPress={() => applyFilter(cat)}
-          >
-            <Text
-              style={[
-                styles.modalOptionText,
-                selectedCategory === cat && styles.modalOptionTextSelected,
-              ]}
-            >
-              {cat}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-
-      <TouchableOpacity style={styles.clearButton} onPress={clearFilter}>
-        <Text style={styles.clearButtonText}>Clear Filters</Text>
-      </TouchableOpacity>
-    </View>
-  </View>
-</Modal>
-
     </SafeAreaView>
   );
 };
 
 export default StudentAllCourses;
 
-
- const styles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
+  center: { justifyContent: 'center', alignItems: 'center' },
+
   bannerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 15,
-    borderRadius: 12,
-    margin: 15,
+    paddingVertical: verticalScale(12),
+    paddingHorizontal: scale(16),
+    borderRadius: moderateScale(12),
+    margin: scale(16),
   },
-  bannerText: { color: '#fff', fontSize: 16, flex: 1, marginRight: 10 },
-  filterButton: { padding: 8, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 8 },
-  capsule: {
-    marginHorizontal: 16,
-    marginBottom: 12,
-    backgroundColor: '#fff',
-    borderRadius: 30,
-    paddingVertical: 14,
-    alignItems: 'center',
-    elevation: 4,
+  bannerText: {
+    color: '#fff',
+    fontSize: moderateScale(14),
+    fontWeight: '600',
+    textAlign: 'center',
   },
-  capsuleText: { fontSize: 16, fontWeight: '600', color: '#333' },
-  capsuleNumber: { fontWeight: '700', color: '#6a11cb' },
+  listContent: {
+    paddingHorizontal: scale(16),
+    paddingTop: verticalScale(12),
+    paddingBottom: verticalScale(24),
+  },
 
   card: {
     backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 12,
+    borderRadius: moderateScale(12),
+    marginBottom: verticalScale(16),
+    elevation: 3,
+    shadowColor: 'rgba(15, 35, 61, 1)',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    overflow: 'hidden',
+  },
+  thumbnail: {
+    width: '100%',
+    height: verticalScale(130),
+    backgroundColor: '#eaeaea',
+  },
+  cardContent: { padding: scale(12) },
+  cardTitle: {
+    fontSize: moderateScale(16),
+    fontWeight: '700',
+    marginBottom: verticalScale(6),
+    color: '#0f233d',
+  },
+  subjectCapsule: {
+    backgroundColor: 'rgba(15, 35, 61, 1)',
+    alignSelf: 'flex-start',
+    paddingVertical: verticalScale(4),
+    paddingHorizontal: scale(10),
+    borderRadius: moderateScale(20),
+    marginBottom: verticalScale(6),
+  },
+  subjectText: {
+    fontSize: moderateScale(12),
+    fontWeight: '600',
+    color: '#fff',
+  },
+  cardDescription: {
+    fontSize: moderateScale(13),
+    color: '#555',
+    marginBottom: verticalScale(6),
+  },
+  rowContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: verticalScale(8),
+  },
+  enrollButton: {
+    backgroundColor: 'rgba(15, 35, 61, 1)',
+    borderWidth: 1,
+    borderColor: 'rgba(15, 35, 61, 1)',
+    paddingVertical: verticalScale(8),
+    paddingHorizontal: scale(16),
+    borderRadius: moderateScale(10),
     elevation: 3,
   },
-  cardTitle: { fontSize: 16, fontWeight: '700', marginBottom: 8 },
-  subjectCapsule: {
-    backgroundColor: '#6a11cb',
-    alignSelf: 'flex-start',
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: 20,
-    marginBottom: 8,
-  },
-  subjectText: { fontSize: 12, fontWeight: '600', color: 'white' },
-  cardDescription: { fontSize: 14, color: '#555', marginBottom: 8 },
-  cardLessons: { fontSize: 12, color: '#777', marginBottom: 12 },
+  disabledButton: {
+  backgroundColor: '#ccc',
+  borderColor: '#ccc',
+      paddingVertical: verticalScale(8),
+    paddingHorizontal: scale(16),
+    borderRadius: moderateScale(10),
+    elevation: 3,
+},
+  enrollButtonText: { color: 'white', fontWeight: '600', fontSize: moderateScale(12) },
+  statusText: { fontSize: moderateScale(12), fontWeight: '600' },
+  active: { color: 'green' },
+  inactive: { color: 'red' },
 
-  buttonContainer: { flexDirection: 'row', justifyContent: 'flex-end' },
-  subscribeButton: {
-    backgroundColor: '#2575fc',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-  },
-  subscribedButton: { backgroundColor: '#ddd' },
-  subscribeButtonText: { color: '#fff', fontSize: 14, fontWeight: '600' },
-  subscribedButtonText: { color: '#555' },
+  inactiveCard: {
+  opacity: 0.6,
+  backgroundColor: '#f0f0f0',
+  shadowColor: '#c9c9c9ff',
+  shadowOpacity: 0.2,
+},
 
-  // Modal Styles
- modalOverlay: {
-  flex: 1,
-  backgroundColor: 'rgba(0,0,0,0.5)',
-  justifyContent: 'flex-end',
-},
-modalContent: {
-  backgroundColor: '#fff',
-  padding: 20,
-  borderTopLeftRadius: 20,
-  borderTopRightRadius: 20,
-  maxHeight: '70%',
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: -3 },
-  shadowOpacity: 0.1,
-  shadowRadius: 10,
-  elevation: 10,
-},
-modalTitle: {
-  fontSize: 18,
-  fontWeight: '700',
-  marginBottom: 15,
-  textAlign: 'center',
-  color: '#333',
-},
-modalOption: {
-  paddingVertical: 14,
-  paddingHorizontal: 15,
-  borderRadius: 12,
-  marginVertical: 5,
-  backgroundColor: '#f5f5f5',
-},
-modalOptionSelected: {
-  backgroundColor: '#2575fc',
-},
-modalOptionText: {
-  fontSize: 16,
-  color: '#333',
-},
-modalOptionTextSelected: {
-  color: '#fff',
-  fontWeight: '700',
-},
-clearButton: {
-  marginTop: 20,
-  padding: 14,
+unavailableContainer: {
+  marginTop: verticalScale(8),
+  paddingVertical: verticalScale(6),
   alignItems: 'center',
-  backgroundColor: '#2575fc',
-  borderRadius: 12,
+  // borderTopWidth: 1,
+  // borderTopColor: '#ccc',
 },
-clearButtonText: {
-  color: '#fff',
+
+unavailableText: {
+  color: 'rgba(15, 35, 61, 1)',
+  fontSize: moderateScale(13),
   fontWeight: '600',
-  fontSize: 16,
+  fontStyle: 'italic',
 },
 });
