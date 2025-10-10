@@ -15,6 +15,8 @@ import { Picker } from "@react-native-picker/picker";
 import { Formik } from "formik";
 import * as Yup from "yup";
 import { ScrollView } from "react-native-gesture-handler";
+import { register_url } from "../resources/api/ApiEndPoints";
+
 
 // Validation schema
 const ValidationSchema = Yup.object().shape({
@@ -39,7 +41,7 @@ export default function RegistrationScreen() {
   const handleSubmit = async (values, { resetForm }) => {
     setLoading(true);
     try {
-      const response = await fetch("https://lms-backend-rm7u.onrender.com/api/auth/register", {
+      const response = await fetch(register_url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -75,7 +77,7 @@ export default function RegistrationScreen() {
         contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}
         keyboardShouldPersistTaps="handled"
       >
-        <LinearGradient colors={['#fafafaff', '#6200EE']} style={{ flex: 1 }}>
+        <LinearGradient colors={["#CFE7F0", "#09203F"]} style={{ flex: 1 }}>
           <SafeAreaView style={styles.container}>
             <Text style={styles.title}>Registration</Text>
 
@@ -166,12 +168,52 @@ export default function RegistrationScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, justifyContent: "center", alignItems: "center" },
-  title: { fontSize: 32, fontWeight: "bold", color: "#ffffffff", marginBottom: 40, textAlign: "center" },
-  input: { width: "100%", paddingVertical: 14, paddingHorizontal: 20, borderRadius: 15, backgroundColor: "#fff", fontSize: 16, borderWidth: 1, borderColor: "#ddd", marginBottom: 15, color: "#000" },
-  dropdownContainer: { borderWidth: 1, borderColor: "#ddd", borderRadius: 15, marginBottom: 15, backgroundColor: "#fff", width: "100%" },
-  picker: { color: "#000" },
-  button: { backgroundColor: "#6200EE", paddingVertical: 15, paddingHorizontal: 60, borderRadius: 50, alignItems: "center", marginBottom: 20, elevation: 5, shadowColor: "#000", shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.3, shadowRadius: 4 },
-  buttonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
-  errorText: { color: "#ffffffff", fontSize: 12, marginBottom: 5 },
+  container: {
+    flex: 1,
+    padding: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#ffffffff',
+    marginBottom: 40,
+    textAlign: 'center',
+  },
+  input: {
+    width: '100%',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 15,
+    backgroundColor: '#fff',
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    marginBottom: 15,
+  },
+  dropdownContainer: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 15,
+    marginBottom: 15,
+    backgroundColor: '#fff',
+    width: '100%',
+  },
+  picker: { color: '#000' },
+  button: {
+    backgroundColor:"#09203F",
+    paddingVertical: 15,
+    paddingHorizontal: 60,
+    borderRadius: 50,
+    alignItems: 'center',
+    marginBottom: 20,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  errorText: { color: '#ffffffff', fontSize: 12, marginBottom: 5 },
 });

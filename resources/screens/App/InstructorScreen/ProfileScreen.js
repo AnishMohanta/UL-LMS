@@ -1,68 +1,57 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react"; 
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
-  Image,
   Alert,
-  Modal,
-  BackHandler,
   ActivityIndicator,
+  Image,
+  Platform,
 } from "react-native";
-import Ionicons from "react-native-vector-icons/Ionicons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import LinearGradient from "react-native-linear-gradient";
-
-// const defaultProfilePic = require("./profile.webp");
+import Ionicons from "react-native-vector-icons/Ionicons";
+import { BlurView } from '@react-native-community/blur';
+import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
+import { useAuth } from "../../../navigations";
 
 export default function ProfileScreen({ navigation }) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [modalVisible, setModalVisible] = useState(false);
+  const { setUserToken } = useAuth();
 
-  // FETCH PROFILE DATA FROM BACKEND
   useEffect(() => {
-    const fetchProfile = async () => {
+    const loadProfileFromStorage = async () => {
       try {
-        const res = await fetch("http://your-api-url.com/auth/profile", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer YOUR_TOKEN_HERE", // token dynamically lagana hoga
-          },
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setProfile(data);
-        } else {
-          Alert.alert("Error", "Failed to fetch profile data");
+        const token = await AsyncStorage.getItem("userToken");
+        if (!token) {
+          navigation.replace("LoginScreen");
+          return;
         }
-      } catch (err) {
-        Alert.alert("Error", "Something went wrong!");
+
+        const userName = await AsyncStorage.getItem("userName");
+        const userEmail = await AsyncStorage.getItem("userEmail");
+        const userRole = await AsyncStorage.getItem("userRole");
+        const userImage = await AsyncStorage.getItem("userImage"); // optional, if you saved it
+
+        const userData = {
+          name: userName || "User",
+          email: userEmail || "—",
+          role: userRole || "—",
+          image: userImage || null,
+        };
+
+        setProfile(userData);
+      } catch (error) {
+        Alert.alert("Error", "Failed to load profile from storage!");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProfile();
-  }, []);
-
-  // BACK BUTTON HANDLING FOR MODAL
-  useEffect(() => {
-    const backAction = () => {
-      if (modalVisible) {
-        setModalVisible(false);
-        return true; // handled
-      }
-      return false; // default behavior
-    };
-    const backHandler = BackHandler.addEventListener(
-      "hardwareBackPress",
-      backAction
-    );
-    return () => backHandler.remove();
-  }, [modalVisible]);
+    loadProfileFromStorage();
+  }, [navigation]);
 
   const handleLogout = () => {
     Alert.alert("Logout", "Are you sure you want to logout?", [
@@ -70,9 +59,13 @@ export default function ProfileScreen({ navigation }) {
       {
         text: "Logout",
         style: "destructive",
-        onPress: () => {
-          // TODO: clear token + navigate to login
-          navigation.replace("LoginScreen");
+        onPress: async () => {
+          try {
+            await AsyncStorage.clear();
+            setUserToken(null);
+          } catch (err) {
+            Alert.alert("Error", "Failed to logout. Try again!");
+          }
         },
       },
     ]);
@@ -80,131 +73,135 @@ export default function ProfileScreen({ navigation }) {
 
   if (loading) {
     return (
-      <View style={styles.emptyContainer}>
-        <ActivityIndicator size="large" color="#243cc4ff" />
-        <Text style={styles.emptyText}>Loading Profile...</Text>
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#5A77A5" />
+        <Text style={styles.loadingText}>Loading Profile...</Text>
       </View>
     );
   }
 
   if (!profile) {
     return (
-      <View style={styles.emptyContainer}>
-        <Ionicons name="person-circle-outline" size={60} color="gray" />
-        <Text style={styles.emptyText}>No Profile Found</Text>
+      <View style={styles.loadingContainer}>
+        <Ionicons name="person-circle-outline" size={90} color="#999" />
+        <Text style={styles.loadingText}>No Profile Found</Text>
       </View>
     );
   }
 
   return (
-    <LinearGradient colors={["#7755f4ff", "#7755f4ff"]} style={{ flex: 1 }}>
-      <ScrollView style={styles.container} contentContainerStyle={{ padding: 20 }}>
-        <View style={styles.profileHeader}>
-          <TouchableOpacity
-            style={styles.profilePicContainer}
-            onPress={() => setModalVisible(true)}
-          >
-            <Image
-              source={defaultProfilePic ? defaultProfilePic : { uri: 'https://media.istockphoto.com/id/1393750072/vector/flat-white-icon-man-for-web-design-silhouette-flat-illustration-vector-illustration-stock.jpg?s=612x612&w=0&k=20&c=s9hO4SpyvrDIfELozPpiB_WtzQV9KhoMUP9R9gVohoU=' }
-              }
-              style={styles.profilePic}
-            />
-          </TouchableOpacity>
+    <LinearGradient colors={["#E0F7FA", "#0F233D"]} style={styles.container}>
+      
+      {/* Profile Picture */}
+      <View style={styles.profileContainer}>
+        {profile.image ? (
+          <Image source={{ uri: profile.image }} style={styles.profilePic} />
+        ) : (
+          <Ionicons name="person-circle-outline" size={scale(120)} color="#000" />
+        )}
+      </View>
 
-          <Text style={styles.name}>{profile.name}</Text>
-          <Text style={styles.role}>{profile.role}</Text>
+      {/* Info Card */}
+      <View style={styles.infoCard}>
+        {Platform.OS === 'ios' && (
+          <BlurView
+            style={StyleSheet.absoluteFill}
+            blurType="light"
+            blurAmount={10}
+            reducedTransparencyFallbackColor="rgba(255,255,255,0.95)"
+          />
+        )}
+
+        <View style={styles.infoItem}>
+          <Text style={styles.label}>Name</Text>
+          <Text style={styles.value}>{profile.name?.trim() || "User"}</Text>
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Contact Information</Text>
-          <View style={styles.infoRow}>
-            <Ionicons name="mail-outline" size={18} color="#555" />
-            <Text style={styles.infoText}>{profile.email}</Text>
-          </View>
+        <View style={styles.infoItem}>
+          <Text style={styles.label}>Role</Text>
+          <Text style={styles.value}>{profile.role || "—"}</Text>
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Account Information</Text>
-          <View style={styles.infoRow}>
-            <Ionicons name="calendar-outline" size={18} color="#555" />
-            <Text style={styles.infoText}>
-              Joined: {new Date(profile.createdAt).toDateString()}
-            </Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Ionicons name="refresh-outline" size={18} color="#555" />
-            <Text style={styles.infoText}>
-              Updated: {new Date(profile.updatedAt).toDateString()}
-            </Text>
-          </View>
+        <View style={styles.infoItem}>
+          <Text style={styles.label}>Email</Text>
+          <Text style={styles.value}>{profile.email || "—"}</Text>
         </View>
 
-        <View style={{ marginTop: 20 }}>
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-            <Text style={styles.logoutButtonText}>Logout</Text>
-          </TouchableOpacity>
-        </View>
-
-        <Modal
-          visible={modalVisible}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setModalVisible(false)}
-        >
-          <View style={styles.modalContainer}>
-            <TouchableOpacity
-              style={styles.modalBackground}
-              onPress={() => setModalVisible(false)}
-            />
-            <Image source={defaultProfilePic ? defaultProfilePic : { uri: 'https://media.istockphoto.com/id/1393750072/vector/flat-white-icon-man-for-web-design-silhouette-flat-illustration-vector-illustration-stock.jpg?s=612x612&w=0&k=20&c=s9hO4SpyvrDIfELozPpiB_WtzQV9KhoMUP9R9gVohoU=' }
-            }
-
-              style={styles.zoomedImage} />
-          </View>
-        </Modal>
-      </ScrollView>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutText}>Logout</Text>
+        </TouchableOpacity>
+      </View>
     </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  profileHeader: { alignItems: "center", marginBottom: 20 },
-  profilePicContainer: { position: "relative" },
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    paddingTop: verticalScale(70),
+  },
+  profileContainer: {
+    marginBottom: verticalScale(30),
+    alignItems: 'center',
+  },
   profilePic: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: scale(120),
+    height: scale(120),
+    borderRadius: scale(60),
     borderWidth: 2,
-    borderColor: "#fff",
+    borderColor: 'rgba(255,255,255,0.7)',
   },
-  name: { fontSize: 22, fontWeight: "700", marginTop: 10, color: "#fff" },
-  role: { fontSize: 16, color: "#fff", marginBottom: 10 },
-  card: {
-    backgroundColor: "rgba(255,255,255,0.9)",
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 15,
-    elevation: 4,
+  infoCard: {
+    width: '85%',
+    backgroundColor: '#fdfdfd',
+    borderRadius: moderateScale(20),
+    paddingVertical: verticalScale(25),
+    paddingHorizontal: scale(20),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: verticalScale(6) },
+    shadowOpacity: 0.1,
+    shadowRadius: moderateScale(12),
+    elevation: 10,
+    alignItems: 'center',
   },
-  cardTitle: { fontSize: 16, fontWeight: "700", marginBottom: 8 },
-  infoRow: { flexDirection: "row", alignItems: "center", marginBottom: 10 },
-  infoText: { fontSize: 14, color: "#555", marginLeft: 10 },
+  infoItem: {
+    width: '100%',
+    marginBottom: verticalScale(15),
+  },
+  label: {
+    fontSize: moderateScale(13),
+    color: '#888',
+    marginBottom: verticalScale(3),
+  },
+  value: {
+    fontSize: moderateScale(16),
+    fontWeight: '600',
+    color: '#111',
+  },
   logoutButton: {
-    backgroundColor: "red",
-    padding: 15,
-    borderRadius: 12,
-    alignItems: "center",
+    marginTop: verticalScale(15),
+    width: '60%',
+    backgroundColor: 'rgba(255,77,77,0.9)',
+    paddingVertical: verticalScale(12),
+    borderRadius: moderateScale(25),
+    alignItems: 'center',
+    shadowColor: '#ff4d4d',
+    shadowOffset: { width: 0, height: verticalScale(4) },
+    shadowOpacity: 0.4,
+    shadowRadius: moderateScale(8),
+    elevation: 6,
   },
-  logoutButtonText: { color: "#fff", fontWeight: "600" },
-  emptyContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
-  emptyText: { marginTop: 10, fontSize: 16, color: "gray" },
-  modalContainer: {
+  logoutText: {
+    color: '#fff',
+    fontSize: moderateScale(16),
+    fontWeight: '600',
+  },
+  loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.8)",
+    backgroundColor: "#EAF2F5",
   },
-  modalBackground: { position: "absolute", width: "100%", height: "100%" },
-  zoomedImage: { width: "90%", height: "70%", borderRadius: 10 },
+  loadingText: { marginTop: 10, fontSize: 16, color: "#555" },
 });
