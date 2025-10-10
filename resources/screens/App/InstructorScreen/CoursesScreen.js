@@ -18,6 +18,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { launchImageLibrary } from "react-native-image-picker";
 import { my_courses_instructor, base_url } from "../../../api/ApiEndPoints";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const DUMMY_THUMBNAIL = "https://via.placeholder.com/300x150.png?text=Course";
 
@@ -274,7 +275,7 @@ export default function CoursesScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {loading && courses.length === 0 ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#09203F" />
@@ -355,7 +356,7 @@ export default function CoursesScreen({ navigation }) {
           </View>
         </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }
 

@@ -17,7 +17,7 @@ import LinearGradient from "react-native-linear-gradient";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { my_courses_instructor, base_url } from "../../../api/ApiEndPoints";
-
+import { SafeAreaView } from "react-native-safe-area-context";
 // // Enable LayoutAnimation on Android
 // if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
 //   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -165,7 +165,7 @@ export default function StudentsScreen() {
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#fff" }}>
+    <SafeAreaView  style={{ flex: 1, backgroundColor: "#fff" }}>
       <ScrollView
         contentContainerStyle={{ padding: 15, paddingBottom: 120 }}
         refreshControl={
@@ -220,7 +220,7 @@ export default function StudentsScreen() {
           />
         )}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
