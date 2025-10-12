@@ -15,7 +15,7 @@ import { Picker } from "@react-native-picker/picker";
 import { Formik } from "formik";
 import * as Yup from "yup";
 import { ScrollView } from "react-native-gesture-handler";
-import { register_url } from "../resources/api/ApiEndPoints";
+import { register_url } from "../api/ApiEndPoints";
 
 
 // Validation schema
@@ -123,7 +123,6 @@ export default function RegistrationScreen() {
                     style={styles.input}
                     placeholder="Password"
                     placeholderTextColor="#666"
-                    secureTextEntry
                     onChangeText={handleChange("password")}
                     onBlur={handleBlur("password")}
                     value={values.password}

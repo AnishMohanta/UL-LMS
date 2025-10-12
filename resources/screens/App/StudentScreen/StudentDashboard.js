@@ -20,6 +20,7 @@ import { enrolled_courses_url } from '../../../api/ApiEndPoints';
 import Toast from 'react-native-toast-message';
 import { useIsFocused } from '@react-navigation/native';
 
+
 const StudentDashboard = ({ navigation }) => {
   const [userName, setUserName] = useState('User');
   const [courses, setCourses] = useState([]);
@@ -67,19 +68,19 @@ const StudentDashboard = ({ navigation }) => {
           }
         );
 
-        const fetchedCourses = response?.data?.data?.data || [];
-        const pagination = response?.data?.data?.pagination || {};
+        const fetchedCourses = response.data?.data?.data || [];
+        const pagination = response.data?.data?.pagination || {};
 
         const mappedCourses = fetchedCourses.map((item) => ({
-          id: item._id,
-           courseId: item.course._id, 
-           instructorName: item.course?.instructor?.name || 'Instructor',
-          title: item.course?.title || 'Untitled Course',
-          category: item.course?.category || 'Uncategorized',
-          description: item.course?.description || 'No description available',
-          progress: item.progress ?? 0,
-          isActive: item.course?.isActive,
-          thumbnail: item.course?.imageUrl
+          id: item?._id,
+           courseId: item?.course._id, 
+           instructorName: item?.course?.instructor?.name || 'Instructor',
+          title: item?.course?.title || 'Untitled Course',
+          category: item?.course?.category || 'Uncategorized',
+          description: item?.course?.description || 'No description available',
+          progress: item?.progress ?? 0,
+          isActive: item?.course?.isActive,
+          thumbnail: item?.course?.imageUrl
             ? { uri: item.course.imageUrl }
             : blankThumbnail,
         }));

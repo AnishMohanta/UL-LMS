@@ -214,18 +214,18 @@ const renderCourseCard = ({ item }) => {
       />
       <View style={styles.cardContent}>
         <Text style={[styles.cardTitle, isInactive ]}>
-          {item.title}
+          {item?.title}
         </Text>
 
         <View style={[styles.subjectCapsule, isInactive ]}>
-          <Text style={styles.subjectText}>{item.category}</Text>
+          <Text style={styles?.subjectText}>{item.category}</Text>
         </View>
          <Text style={[styles.instructorText, isInactive && { color: '#aaa' }]}>
           By {item.instructor?.name}
         </Text>
 
         <Text style={[styles.cardDescription, isInactive]}>
-          {item.description}
+          {item?.description}
         </Text>
 
         {isInactive ? (
