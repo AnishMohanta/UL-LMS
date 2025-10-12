@@ -226,7 +226,7 @@ export default function StudentLessons() {
           </TouchableOpacity>
 
           {/* Completion */}
-          {/* <TouchableOpacity
+          <TouchableOpacity
             disabled={item.isCompleted || updatingLessonId === item._id}
             // onPress={() => handleMarkComplete(item._id)}
             onPress={() => handleMarkCompleteConfirm(item._id)}
@@ -234,18 +234,19 @@ export default function StudentLessons() {
             {updatingLessonId === item._id ? (
               <ActivityIndicator size="small" color="#28a745" />
             ) : (
-              <Icon
-                name="checkmark-circle"
-                size={moderateScale(32)}
-                color={item.isCompleted ? '#28a745' : '#ccc'}
-              />
-            )}
-          </TouchableOpacity> */}
-          <Icon
+              // <Icon
+              //   name="checkmark-circle"
+              //   size={moderateScale(32)}
+              //   color={item.isCompleted ? '#28a745' : '#ccc'}
+              // />
+                        <Icon
   name={item.isCompleted ? 'checkmark-circle' : 'checkmark-circle-outline'}
   size={moderateScale(32)}
   color={item.isCompleted ? '#28a745' : '#28a745'}
 />
+            )}
+          </TouchableOpacity>
+
         </View>
 
         {/* Video Player */}
