@@ -13,6 +13,7 @@ import {
   Alert,
   Image,
   RefreshControl,
+   Modal, 
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
@@ -30,8 +31,15 @@ const StudentAllCourses = () => {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const  isFocused = useIsFocused()
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState(null);
 
   const API_URL = all_courses_url;
+
+ const handleCardPress = (course) => {
+    setSelectedCourse(course);
+    setModalVisible(true);
+  };
 
   const fetchCourses = useCallback(
     async (pageNumber = 1, isRefresh = false) => {
@@ -206,7 +214,11 @@ const renderCourseCard = ({ item }) => {
   const isInactive = !item.isActive;
 
   return (
-    <View style={[styles.card, isInactive && styles.inactiveCard]}>
+    <TouchableOpacity style={[styles.card, isInactive && styles.inactiveCard]}
+    activeOpacity={0.9}
+    onPress={() => handleCardPress(item)}
+      disabled={isInactive} 
+    >
       <Image
         source={{ uri: item.imageUrl }}
         style={[styles.thumbnail, isInactive ]}
@@ -220,14 +232,25 @@ const renderCourseCard = ({ item }) => {
         <View style={[styles.subjectCapsule, isInactive ]}>
           <Text style={styles?.subjectText}>{item.category}</Text>
         </View>
-         <Text style={[styles.instructorText, isInactive && { color: '#aaa' }]}>
+         <Text style={[styles.instructorText, isInactive]}>
           By {item.instructor?.name}
         </Text>
 
-        <Text style={[styles.cardDescription, isInactive]}>
+        {/* <Text style={[styles.cardDescription, isInactive]}>
           {item?.description}
-        </Text>
+        </Text> */}
+  <Text
+            style={[
+              styles.cardDescription,
+              isInactive,
+              { numberOfLines: 2, overflow: 'hidden' },
+            ]}
+            numberOfLines={2}
+          >
+            {item?.description}
+          </Text>
 
+    
         {isInactive ? (
           <View style={styles.unavailableContainer}>
             <Text style={styles.unavailableText}>No longer available</Text>
@@ -259,7 +282,7 @@ const renderCourseCard = ({ item }) => {
           </View>
         )}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
@@ -295,6 +318,26 @@ const renderCourseCard = ({ item }) => {
         }
         ListFooterComponent={loading && <ActivityIndicator color="#2575fc" />}
       />
+            {/* Modal for course details */}
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>{selectedCourse?.title}</Text>
+            <Text style={styles.modalDescription}>{selectedCourse?.description}</Text>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={{ color: '#fff', fontWeight: '600' }}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -420,4 +463,35 @@ instructorText: {
   // fontStyle: 'italic',
   fontWeight: '600',
 },
+
+modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 24,
+    width: '85%',
+    elevation: 6,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 12,
+    color: '#0f233d',
+  },
+  modalDescription: {
+    fontSize: 15,
+    color: '#555',
+    marginBottom: 18,
+  },
+  closeButton: {
+    backgroundColor: 'rgba(15, 35, 61, 1)',
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
 });

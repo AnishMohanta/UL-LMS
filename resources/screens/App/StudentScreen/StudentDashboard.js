@@ -218,7 +218,7 @@ setCourses((prev) => {
   return (
     <TouchableOpacity
       style={[styles.card, isInactive && styles.inactiveCard]}
-      activeOpacity={0.8}
+      activeOpacity={0.9}
       onPress={() => {
         if (!isInactive) {
           navigation.navigate('StudentLessons', {
@@ -243,7 +243,9 @@ setCourses((prev) => {
           By {item.instructorName || 'Instructor'}
         </Text>
 
-        <Text style={styles.cardDescription}>{item.description}</Text>
+        <Text style={styles.cardDescription}
+         numberOfLines={2}
+        >{item.description}</Text>
         <Text style={styles.cardProgress}>Progress: {item.progress}%</Text>
 
         
