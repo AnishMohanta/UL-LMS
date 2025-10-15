@@ -22,7 +22,7 @@ import {
   moderateScale,
   moderateVerticalScale,
 } from 'react-native-size-matters';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; 
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 
 
@@ -118,7 +118,12 @@ const LoginScreen = ({ navigation }) => {
               placeholderTextColor="#666"
               keyboardType="email-address"
               autoCapitalize="none"
-              style={styles.input}
+
+              style={[
+                styles.input,
+                loading && { opacity: 0.6 },
+              ]}
+              editable={!loading}
               value={values.email}
               onChangeText={handleChange('email')}
               onBlur={handleBlur('email')}
@@ -133,7 +138,12 @@ const LoginScreen = ({ navigation }) => {
                 placeholder="Password"
                 placeholderTextColor="#666"
                 secureTextEntry={!passwordVisible}
-                style={[styles.input, { paddingRight: moderateScale(40) }]}
+
+                style={[
+                  styles.input,
+                  { paddingRight: moderateScale(40) },
+                  loading && { opacity: 0.6 },
+                ]}
                 value={values.password}
                 onChangeText={handleChange('password')}
                 onBlur={handleBlur('password')}
@@ -141,6 +151,7 @@ const LoginScreen = ({ navigation }) => {
               <TouchableOpacity
                 style={styles.eyeIcon}
                 onPress={() => setPasswordVisible(!passwordVisible)}
+                disabled={loading}
               >
                 <Icon
                   name={passwordVisible ? 'eye-off' : 'eye'}
@@ -154,9 +165,15 @@ const LoginScreen = ({ navigation }) => {
             )}
 
 
+
             <View style={styles.roleContainer}>
               <TouchableOpacity
-                style={[styles.roleButton, values.role === 'Student' && styles.activeRoleButton]}
+                style={[
+                  styles.roleButton,
+                  values.role === 'Student' && styles.activeRoleButton,
+                  loading && { opacity: 0.6 },
+                ]}
+                disabled={loading}
                 onPress={() => setFieldValue('role', 'Student')}
               >
                 <Text style={[styles.roleText, values.role === 'Student' && styles.activeRoleText]}>
@@ -165,12 +182,15 @@ const LoginScreen = ({ navigation }) => {
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.roleButton, values.role === 'Instructor' && styles.activeRoleButton]}
+                style={[
+                  styles.roleButton,
+                  values.role === 'Instructor' && styles.activeRoleButton,
+                  loading && { opacity: 0.6 },
+                ]}
+                disabled={loading}
                 onPress={() => setFieldValue('role', 'Instructor')}
               >
-                <Text
-                  style={[styles.roleText, values.role === 'Instructor' && styles.activeRoleText]}
-                >
+                <Text style={[styles.roleText, values.role === 'Instructor' && styles.activeRoleText]}>
                   Instructor
                 </Text>
               </TouchableOpacity>
@@ -178,7 +198,13 @@ const LoginScreen = ({ navigation }) => {
             {errors.role && touched.role && <Text style={styles.errorText}>{errors.role}</Text>}
 
 
-            <TouchableOpacity style={styles.loginButton} onPress={handleSubmit}>
+
+
+            <TouchableOpacity
+              style={[styles.loginButton, loading && { opacity: 0.6 }]}
+              onPress={handleSubmit}
+              disabled={loading}
+            >
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
@@ -189,7 +215,11 @@ const LoginScreen = ({ navigation }) => {
 
             <View style={styles.btnGroup}>
               <Text style={styles.subHeading1}>Do not have an account?</Text>
-              <TouchableOpacity onPress={() => navigation.navigate('ProfileCreation')}>
+              <TouchableOpacity onPress={() => navigation.navigate('ProfileCreation')}
+                disabled={loading}
+                style={loading && { opacity: 0.6 }}
+              >
+
                 <Text style={styles.subHeading2}> Register Now</Text>
               </TouchableOpacity>
             </View>
