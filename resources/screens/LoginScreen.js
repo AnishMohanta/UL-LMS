@@ -127,16 +127,6 @@ const LoginScreen = ({ navigation }) => {
               <Text style={styles.errorText}>{errors.email}</Text>
             )}
 
-            {/* <TextInput
-              placeholder="Password"
-              placeholderTextColor="#666"
-              secureTextEntry
-              style={styles.input}
-              value={values.password}
-              onChangeText={handleChange('password')}
-              onBlur={handleBlur('password')}
-            /> */}
-
 
             <View style={styles.passwordContainer}>
               <TextInput
@@ -264,10 +254,7 @@ const styles = StyleSheet.create({
     borderRadius: moderateScale(50),
     marginBottom: moderateVerticalScale(20),
     elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+
   },
   loginText: { color: '#fff', fontSize: moderateScale(16), fontWeight: 'bold' },
   btnGroup: {

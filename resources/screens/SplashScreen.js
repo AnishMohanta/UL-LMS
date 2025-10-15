@@ -13,12 +13,12 @@ const SplashScreen = ({ navigation }) => {
       colors={['#E0F7FA', "rgba(15, 35, 61, 1)"]}
       style={styles.container}
     >
-      {/* Middle Section: App Name */}
+      
       <View style={styles.middleSection}>
         <Text style={styles.appName}>UL LMS</Text>
       </View>
 
-      {/* Rounded capsule button */}
+      
       <TouchableOpacity
         style={styles.loginButton}
         onPress={() => navigation.navigate('Login')}
@@ -27,7 +27,7 @@ const SplashScreen = ({ navigation }) => {
         <Text style={styles.loginButtonText}>Go to Login</Text>
       </TouchableOpacity>
 
-      {/* Bottom Register Section */}
+     
       <View style={styles.btnGroup}>
         <Text style={styles.subHeading1} allowFontScaling={true}>
           Do not have an account?
@@ -47,7 +47,7 @@ const styles = ScaledSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
     alignItems: 'center',
-    paddingBottom: verticalScale(30), // scales vertically
+    paddingBottom: verticalScale(30), 
   },
   middleSection: {
     position: 'absolute',
@@ -55,7 +55,7 @@ const styles = ScaledSheet.create({
     alignItems: 'center',
   },
   appName: {
-    fontSize: moderateScale(36), // scales font
+    fontSize: moderateScale(36),
     fontWeight: 'bold',
     color: 'white',
   },
@@ -65,11 +65,8 @@ const styles = ScaledSheet.create({
     paddingHorizontal: moderateScale(60),
     borderRadius: moderateScale(50),
     marginBottom: verticalScale(20),
-    elevation: 5, // Android shadow
-    shadowColor: '#000', // iOS shadow
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    elevation: 5, 
+
   },
   loginButtonText: {
     color: 'white',

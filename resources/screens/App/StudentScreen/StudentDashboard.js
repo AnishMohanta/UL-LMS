@@ -52,7 +52,7 @@ const StudentDashboard = ({ navigation }) => {
     fetchUserData();
   }, []);
 
-  // Fetch paginated courses
+  
   const fetchCourses = useCallback(
     async (pageNumber = 1, isRefresh = false , showToast = true) => {
       if (loading) return;
@@ -86,22 +86,7 @@ const StudentDashboard = ({ navigation }) => {
             : blankThumbnail,
         }));
 
-        
-        // setCourses((prev) => {
-        //   const newList = isRefresh ? mappedCourses : [...prev, ...mappedCourses];
-        //   const uniqueCourses = newList.filter(
-        //     (course, index, self) =>
-        //       index === self.findIndex((c) => c.id === course.id)
-        //   );
-        //   return uniqueCourses;
-        // });
-// setCourses((prev) => {
-//   const mergedCourses = mappedCourses.map((newCourse) => {
-//     const existing = prev.find((c) => c.id === newCourse.id);
-//     return existing ? { ...existing, ...newCourse } : newCourse;
-//   });
-//   return mergedCourses;
-// });
+      
 
 setCourses((prev) => {
 
@@ -156,59 +141,20 @@ setCourses((prev) => {
   loadNewCourses();
 }, [isFocused]);
 
-  // Handle refresh
+
   const onRefresh = () => {
     setRefreshing(true);
     fetchCourses(1, true);
   };
 
-  // Handle pagination
+
   const handleEndReached = () => {
     if (hasNextPage && !loading) {
       fetchCourses(page + 1);
     }
   };
 
-  // const renderCourseCard = ({ item }) => (
 
-  //   <TouchableOpacity
-  //     style={styles.card}
-  //     activeOpacity={0.8}
-  //     onPress={() => {
-  //       if (item.isActive) {
-  //         navigation.navigate('StudentLessons', {
-  //           courseId: item.courseId,
-  //           title: item.title,
-  //           category: item.category,
-  //           description: item.description,
-  //           thumbnail: item.thumbnail.uri,
-  //         });
-  //       }
-  //     }}
-  //     disabled={!item.isActive}
-      
-  //   >
-  //     <Image source={item.thumbnail} style={styles.thumbnail} resizeMode="cover" />
-  //     <View style={styles.cardContent}>
-  //       <Text style={styles.cardTitle}>{item.title}</Text>
-  //       <View style={styles.subjectCapsule}>
-  //         <Text style={styles.subjectText}>{item.category}</Text>
-  //       </View>
-  //       <Text style={styles.cardDescription}>{item.description}</Text>
-  //       <Text style={styles.cardProgress}>Progress: {item.progress}%</Text>
-  //       <View style={styles.statusContainer}>
-  //         <Text
-  //           style={[
-  //             styles.statusText,
-  //             item.isActive ? styles.active : styles.inactive,
-  //           ]}
-  //         >
-  //           {item.isActive ? 'Active' : 'Discontinued'}
-  //         </Text>
-  //       </View>
-  //     </View>
-  //   </TouchableOpacity>
-  // );
 
 
   const renderCourseCard = ({ item }) => {

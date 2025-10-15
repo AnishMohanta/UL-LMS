@@ -307,18 +307,7 @@ export default function StudentLessons() {
           ) : null
         }
         ListHeaderComponent={
-          // <View style={styles.bannerContainer}>
-          //   <Image
-          //     source={{ uri: thumbnail }}
-          //     style={styles.bannerImage}
-          //     resizeMode="cover"
-          //   />
-          //   <View style={styles.bannerTextContainer}>
-          //     <Text style={styles.bannerTitle}>{title}</Text>
-          //     <Text style={styles.bannerCategory}>{category}</Text>
-          //     <Text style={styles.bannerDescription}>{description}</Text>
-          //   </View>
-          // </View>
+     
 
            <View style={styles.bannerContainer}>
     <Image
@@ -364,20 +353,7 @@ export default function StudentLessons() {
         style={{ margin: 0 }}
       >
         <View style={{ flex: 1, backgroundColor: '#fff', padding: 16 }}>
-          {/* <TouchableOpacity
-            onPress={() => setModalVisible(false)}
-            style={{
-              position: 'absolute',
-              top: 16,
-              right: 16,
-              backgroundColor: '#f0f0f0',
-              borderRadius: 20,
-              padding: 6,
-              zIndex: 10,
-            }}
-          >
-            <Icon name="close" size={24} color="rgba(15, 35, 61, 1)" />
-          </TouchableOpacity> */}
+     
         
 <View
   style={{
@@ -410,12 +386,7 @@ export default function StudentLessons() {
       </Text>
     </View>
             <ScrollView showsVerticalScrollIndicator={false}>
-              {/* <Text style={{ fontWeight: '700', fontSize: moderateScale(18), marginBottom: 8 }}>
-                {title}
-              </Text>
-              <Text style={{ fontWeight: '500', fontSize: moderateScale(18), marginBottom: 16 }}>
-                Lesson {selectedLesson.order}: {selectedLesson.title}
-              </Text> */}
+        
 
               {containsHTML(selectedLesson.content) ? (
                 // Render HTML content
@@ -582,44 +553,7 @@ export default function StudentLessons() {
                         </Text>
                       );
                     },
-                    //                 link: (node, children, parent, styles) => {
-                    //                   console.log(node, " link message")
-                    //                   const text = node.content || '';
-                    // const parts = text.split(/(https?:\/\/[^\s]+)/g); // split text by URLs
-                    //                   const handlePress = () => {
-                    //                     // const url = node.attributes?.href;
-                    //                     const url = parts;
-                    //                     if (url) {
-                    //                       Linking.canOpenURL(url)
-                    //                         .then((supported) => {
-                    //                           if (supported) {
-                    //                             Linking.openURL(url);
-                    //                           } else {
-                    //                             Toast.show({
-                    //                               type: 'error',
-                    //                               text1: 'Cannot open link',
-                    //                               text2: 'Invalid URL',
-                    //                             });
-                    //                           }
-                    //                         })
-                    //                         .catch(() => {
-                    //                           Toast.show({
-                    //                             type: 'error',
-                    //                             text1: 'Error',
-                    //                             text2: 'Failed to open link',
-                    //                           });
-                    //                         });
-                    //                     }
-                    //                   };
-
-                    //                   return (
-                    //                     <TouchableOpacity key={node.key} onPress={handlePress} activeOpacity={0.7}>
-                    //                       <Text style={{ color: '#007AFF', textDecorationLine: 'underline' }}>
-                    //                         {children}
-                    //                       </Text>
-                    //                     </TouchableOpacity>
-                    //                   );
-                    //                 },
+                
                     link: (node, children, parent, styles) => {
                       const url = node.attributes?.href;
 
