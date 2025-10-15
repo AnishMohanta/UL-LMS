@@ -1,7 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 
-
-
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
@@ -13,7 +11,8 @@ import {
   Alert,
   Image,
   RefreshControl,
-   Modal, 
+  Modal,
+  ScrollView
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
@@ -30,16 +29,19 @@ const StudentAllCourses = () => {
   const [hasNextPage, setHasNextPage] = useState(true);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const  isFocused = useIsFocused()
+  const isFocused = useIsFocused()
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState(null);
 
   const API_URL = all_courses_url;
 
- const handleCardPress = (course) => {
+  const handleCardPress = (course) => {
     setSelectedCourse(course);
     setModalVisible(true);
   };
+
+
+
 
   const fetchCourses = useCallback(
     async (pageNumber = 1, isRefresh = false) => {
@@ -58,16 +60,17 @@ const StudentAllCourses = () => {
 
         setCourses((prev) => {
           const newList = isRefresh ? fetchedCourses : [...prev, ...fetchedCourses];
-     
+
           const uniqueCourses = newList.filter(
             (course, index, self) =>
               index === self.findIndex((c) => c._id === course._id)
           );
           return uniqueCourses;
         });
-
         setHasNextPage(pagination.hasNextPage);
         setPage(pageNumber);
+
+
 
         if (isRefresh) {
           Toast.show({
@@ -95,14 +98,13 @@ const StudentAllCourses = () => {
   //   fetchCourses(1);
   // }, [isFocused]);
   useEffect(() => {
-  if (isFocused) {
-    fetchCourses(1, true); 
-  }
-}, [isFocused]);
-
-  const onRefresh = () => {
+    if (isFocused) {
+      fetchCourses(1, true);
+    }
+  }, [isFocused]);
+const onRefresh = () => {
     // setHasNextPage(true);
-    setRefreshing(true);
+    setRefreshing(true)
     fetchCourses(1, true);
   };
 
@@ -152,94 +154,34 @@ const StudentAllCourses = () => {
     }
   };
 
-  
-// const renderCourseCard = ({ item }) => (
-//   <View style={styles.card}>
-//     <Image
-//       source={{ uri: item.imageUrl }}
-//       style={styles.thumbnail}
-//       resizeMode="cover"
-//     />
-//     <View style={styles.cardContent}>
-//       <Text style={styles.cardTitle}>{item.title}</Text>
-//       <View style={styles.subjectCapsule}>
-//         <Text style={styles.subjectText}>{item.category}</Text>
-//       </View>
-//       <Text style={styles.cardDescription}>{item.description}</Text>
+  const renderCourseCard = ({ item }) => {
+    const isInactive = !item.isActive;
 
-//       <View style={styles.rowContainer}>
-//         {item.isActive ? (
-//           item.enrollment ? (
-//             // Disabled "Enrolled" button
-//             <View style={[styles.enrollButton, styles.disabledButton]}>
-//               <Text style={styles.enrollButtonText}>Enrolled</Text>
-//             </View>
-//           ) : (
-//             // Active "Enroll Now" button with confirmation
-//             <TouchableOpacity
-//               style={styles.enrollButton}
-//               onPress={() => {
-//                 Alert.alert(
-//                   'Enroll Confirmation',
-//                   'Do you want to enroll?',
-//                   [
-//                     { text: 'No', style: 'cancel' },
-//                     { text: 'Yes', onPress: () => handleEnroll(item._id) },
-//                   ],
-//                   { cancelable: true }
-//                 );
-//               }}
-//             >
-//               <Text style={styles.enrollButtonText}>Enroll Now</Text>
-//             </TouchableOpacity>
-//           )
-//         ) : (
-//           <View style={{ width: scale(100) }} /> // Hide button if not active
-//         )}
 
-//         <Text
-//           style={[
-//             styles.statusText,
-//             item.isActive ? styles.active : styles.inactive,
-//           ]}
-//         >
-//           {item.isActive ? 'Active' : 'Not Active'}
-//         </Text>
-//       </View>
-//     </View>
-//   </View>
-// );
 
-const renderCourseCard = ({ item }) => {
-  const isInactive = !item.isActive;
+    return (
+      <TouchableOpacity style={[styles.card, isInactive && styles.inactiveCard]}
+        activeOpacity={0.9}
+        onPress={() => handleCardPress(item)}
+        disabled={isInactive}
+      >
+        <Image
+          source={{ uri: item.imageUrl }}
+          style={[styles.thumbnail, isInactive]}
+          resizeMode="cover"
+        />
+        <View style={styles.cardContent}>
+          <Text style={[styles.cardTitle, isInactive]}>
+            {item?.title}
+          </Text>
 
-  return (
-    <TouchableOpacity style={[styles.card, isInactive && styles.inactiveCard]}
-    activeOpacity={0.9}
-    onPress={() => handleCardPress(item)}
-      disabled={isInactive} 
-    >
-      <Image
-        source={{ uri: item.imageUrl }}
-        style={[styles.thumbnail, isInactive ]}
-        resizeMode="cover"
-      />
-      <View style={styles.cardContent}>
-        <Text style={[styles.cardTitle, isInactive ]}>
-          {item?.title}
-        </Text>
-
-        <View style={[styles.subjectCapsule, isInactive ]}>
-          <Text style={styles?.subjectText}>{item.category}</Text>
-        </View>
-         <Text style={[styles.instructorText, isInactive]}>
-          By {item.instructor?.name}
-        </Text>
-
-        {/* <Text style={[styles.cardDescription, isInactive]}>
-          {item?.description}
-        </Text> */}
-  <Text
+          <View style={[styles.subjectCapsule, isInactive]}>
+            <Text style={styles?.subjectText}>{item.category}</Text>
+          </View>
+          <Text style={[styles.instructorText, isInactive]}>
+            By {item.instructor?.name}
+          </Text>
+          <Text
             style={[
               styles.cardDescription,
               isInactive,
@@ -250,41 +192,41 @@ const renderCourseCard = ({ item }) => {
             {item?.description}
           </Text>
 
-    
-        {isInactive ? (
-          <View style={styles.unavailableContainer}>
-            <Text style={styles.unavailableText}>No longer available</Text>
-          </View>
-        ) : (
-          <View style={styles.rowContainer}>
-            {item.enrollment ? (
-              <View style={[styles.enrollButton, styles.disabledButton]}>
-                <Text style={styles.enrollButtonText}>Enrolled</Text>
-              </View>
-            ) : (
-              <TouchableOpacity
-                style={styles.enrollButton}
-                onPress={() => {
-                  Alert.alert(
-                    'Enroll Confirmation',
-                    'Do you want to enroll?',
-                    [
-                      { text: 'No', style: 'cancel' },
-                      { text: 'Yes', onPress: () => handleEnroll(item._id) },
-                    ],
-                    { cancelable: true }
-                  );
-                }}
-              >
-                <Text style={styles.enrollButtonText}>Enroll Now</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        )}
-      </View>
-    </TouchableOpacity>
-  );
-};
+
+          {isInactive ? (
+            <View style={styles.unavailableContainer}>
+              <Text style={styles.unavailableText}>No longer available</Text>
+            </View>
+          ) : (
+            <View style={styles.rowContainer}>
+              {item.enrollment ? (
+                <View style={[styles.enrollButton, styles.disabledButton]}>
+                  <Text style={styles.enrollButtonText}>Enrolled</Text>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  style={styles.enrollButton}
+                  onPress={() => {
+                    Alert.alert(
+                      'Enroll Confirmation',
+                      'Do you want to enroll?',
+                      [
+                        { text: 'No', style: 'cancel' },
+                        { text: 'Yes', onPress: () => handleEnroll(item._id) },
+                      ],
+                      { cancelable: true }
+                    );
+                  }}
+                >
+                  <Text style={styles.enrollButtonText}>Enroll Now</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   if (loading && courses.length === 0) {
     return (
@@ -318,26 +260,40 @@ const renderCourseCard = ({ item }) => {
         }
         ListFooterComponent={loading && <ActivityIndicator color="#2575fc" />}
       />
-            {/* Modal for course details */}
+    
       <Modal
-        visible={modalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setModalVisible(false)}
+  visible={modalVisible}
+  transparent
+  animationType="slide"
+  onRequestClose={() => setModalVisible(false)}
+>
+  <View style={styles.modalOverlay}>
+    <View style={styles.modalContent}>
+    
+       <Text style={styles.modalTitle}>{selectedCourse?.title}</Text>
+      <ScrollView
+        style={styles.scrollArea}
+        contentContainerStyle={{ paddingBottom: 80 }} 
+        showsVerticalScrollIndicator={false}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{selectedCourse?.title}</Text>
-            <Text style={styles.modalDescription}>{selectedCourse?.description}</Text>
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setModalVisible(false)}
-            >
-              <Text style={{ color: '#fff', fontWeight: '600' }}>Close</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+       
+        <Text style={styles.modalDescription}>
+          {selectedCourse?.description}
+        </Text>
+      </ScrollView>
+
+      
+      <View style={styles.fixedButtonContainer}>
+        <TouchableOpacity
+          style={styles.closeButton}
+          onPress={() => setModalVisible(false)}
+        >
+          <Text style={{ color: '#fff', fontWeight: '600' }}>Close</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </View>
+</Modal>
     </SafeAreaView>
   );
 };
@@ -423,75 +379,93 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   disabledButton: {
-  backgroundColor: '#ccc',
-  borderColor: '#ccc',
-      paddingVertical: verticalScale(8),
+    backgroundColor: '#ccc',
+    borderColor: '#ccc',
+    paddingVertical: verticalScale(8),
     paddingHorizontal: scale(16),
     borderRadius: moderateScale(10),
     elevation: 3,
-},
+  },
   enrollButtonText: { color: 'white', fontWeight: '600', fontSize: moderateScale(12) },
   statusText: { fontSize: moderateScale(12), fontWeight: '600' },
   active: { color: 'green' },
   inactive: { color: 'red' },
 
   inactiveCard: {
-  opacity: 0.6,
-  backgroundColor: '#f0f0f0',
-  shadowColor: '#c9c9c9ff',
-  shadowOpacity: 0.2,
-},
+    opacity: 0.6,
+    backgroundColor: '#f0f0f0',
+    shadowColor: '#c9c9c9ff',
+    shadowOpacity: 0.2,
+  },
 
-unavailableContainer: {
-  marginTop: verticalScale(8),
-  paddingVertical: verticalScale(6),
+  unavailableContainer: {
+    marginTop: verticalScale(8),
+    paddingVertical: verticalScale(6),
+    alignItems: 'center',
+    // borderTopWidth: 1,
+    // borderTopColor: '#ccc',
+  },
+
+  unavailableText: {
+    color: 'rgba(15, 35, 61, 1)',
+    fontSize: moderateScale(13),
+    fontWeight: '600',
+    fontStyle: 'italic',
+  },
+  instructorText: {
+    fontSize: moderateScale(12),
+    color: 'rgba(15, 35, 61, 1)',
+    marginBottom: verticalScale(4),
+    // fontStyle: 'italic',
+    fontWeight: '600',
+  },
+
+
+
+  modalOverlay: {
+  flex: 1,
+  backgroundColor: 'rgba(0,0,0,0.35)',
+  justifyContent: 'center',
   alignItems: 'center',
-  // borderTopWidth: 1,
-  // borderTopColor: '#ccc',
 },
-
-unavailableText: {
-  color: 'rgba(15, 35, 61, 1)',
-  fontSize: moderateScale(13),
-  fontWeight: '600',
-  fontStyle: 'italic',
+modalContent: {
+  backgroundColor: '#fff',
+  borderRadius: 16,
+  paddingHorizontal: 24,
+  paddingTop: 24,
+  width: '85%',
+  maxHeight: '80%', 
+  elevation: 6,
+  overflow: 'hidden',
 },
-instructorText: {
-  fontSize: moderateScale(12),
-  color: 'rgba(15, 35, 61, 1)',
-  marginBottom: verticalScale(4),
-  // fontStyle: 'italic',
-  fontWeight: '600',
+scrollArea: {
+  flexGrow: 1,
 },
-
-modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.35)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 24,
-    width: '85%',
-    elevation: 6,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 12,
-    color: '#0f233d',
-  },
-  modalDescription: {
-    fontSize: 15,
-    color: '#555',
-    marginBottom: 18,
-  },
-  closeButton: {
-    backgroundColor: 'rgba(15, 35, 61, 1)',
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
+fixedButtonContainer: {
+  position: 'absolute',
+  bottom: 0,
+  left: 0,
+  right: 0,
+  backgroundColor: '#fff',
+  padding: 16,
+  borderTopWidth: 1,
+  borderColor: '#eee',
+},
+closeButton: {
+  backgroundColor: 'rgba(15, 35, 61, 1)',
+  paddingVertical: 10,
+  borderRadius: 8,
+  alignItems: 'center',
+},
+modalTitle: {
+  fontSize: 18,
+  fontWeight: '700',
+  marginBottom: 12,
+  color: '#0f233d',
+},
+modalDescription: {
+  fontSize: 15,
+  color: '#555',
+  lineHeight: 22,
+},
 });

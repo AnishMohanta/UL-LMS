@@ -33,7 +33,8 @@ const StudentDashboard = ({ navigation }) => {
   const API_URL = enrolled_courses_url;
 
 
-  // Fetch user name
+
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -103,10 +104,8 @@ const StudentDashboard = ({ navigation }) => {
 // });
 
 setCourses((prev) => {
-  // When refreshing — replace everything with the latest data
-  if (isRefresh) return mappedCourses;
 
-  // Otherwise, for pagination — append or update
+  if (isRefresh) return mappedCourses;
   const updatedList = [...prev];
 
   mappedCourses.forEach((newCourse) => {
@@ -240,7 +239,7 @@ setCourses((prev) => {
           <Text style={styles.subjectText}>{item.category}</Text>
         </View>
  <Text style={styles.instructorText}>
-          By {item.instructorName || 'Instructor'}
+          By {item.instructorName}
         </Text>
 
         <Text style={styles.cardDescription}
@@ -267,6 +266,8 @@ setCourses((prev) => {
 
   return (
     <SafeAreaView style={styles.container}>
+
+
       <LinearGradient
         colors={['rgba(15, 35, 61, 1)', '#9eecf7ff']}
         start={{ x: 0, y: 0 }}
@@ -276,6 +277,7 @@ setCourses((prev) => {
         <Text style={styles.bannerText}>
           👋 Welcome, {userName} — 🚀 Keep exploring, learning never stops!
         </Text>
+        
       </LinearGradient>
 
       <FlatList
